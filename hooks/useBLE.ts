@@ -43,8 +43,8 @@ function useBLE(): BluetoothLowEnergyApi {
     const bleManager = useMemo(() => new BleManager(), []);
     const [allDevices, setAllDevices] = useState<Device[]>([]);
     const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
-    const [force, setForce] = useState<number>(0);
-    const [timeStamp, setTimeStamp] = useState<number>(0);
+    const [force, setForce] = useState<number>(0); // In kilograms
+    const [timeStamp, setTimeStamp] = useState<number>(0); // In seconds
     const [monitoringSubscription, setMonitoringSubscription] = useState<any>(null);
   
     const requestAndroid31Permissions = async () => {
@@ -174,6 +174,7 @@ function useBLE(): BluetoothLowEnergyApi {
         let currentIndex = 0;
         let lastWeight = -1;
         let avgWeight = 0;
+        let lastTime = 0;
         
         while (currentIndex < rawData.length - 2) { // Need at least 2 bytes for response + length
             const responseCode = rawData[currentIndex].charCodeAt(0);
@@ -196,7 +197,7 @@ function useBLE(): BluetoothLowEnergyApi {
                 // Format: struct.unpack("<fl") - 4 bytes float + 4 bytes long (microseconds)
             const numMeasurements = length / 8; // 15 measurements
             console.log(`Parsing ${numMeasurements} individual measurements`);
-            
+
             let sumOfWeights = 0;
             for (let i = 0; i < numMeasurements; i++) {
                 const measurementStart = i * 8;
@@ -215,14 +216,13 @@ function useBLE(): BluetoothLowEnergyApi {
                 // Parse timestamp as 32-bit integer (microseconds, little-endian)
                 const timestamp = (timestampBytes[3] << 24) | (timestampBytes[2] << 16) | (timestampBytes[1] << 8) | timestampBytes[0];
                 const timeSeconds = timestamp / 1.0e6; // Convert microseconds to seconds
-                
                 console.log(`Measurement ${i + 1}: time=${timeSeconds}s, weight=${weight}`);
                 lastWeight = weight;
+                lastTime = timeSeconds;
             }
 
             // Average the (15) measurements
             avgWeight = sumOfWeights / numMeasurements;
-
 
             // } else if (length === 4) {
             //     // 4 bytes = 32-bit float
@@ -263,7 +263,9 @@ function useBLE(): BluetoothLowEnergyApi {
         
         if (lastWeight !== -1) {
           console.log("Averaged weight:", avgWeight);
+          console.log("lastTime", lastTime);
           setForce(avgWeight);
+          setTimeStamp(lastTime);
         }
       };
     
