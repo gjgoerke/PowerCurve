@@ -1,8 +1,8 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
-import useBLE from "@/hooks/useBLE";
 
+import useBLE from "@/hooks/useBLE";
 import LineChart from "@/components/LineChart";
 
 export default function Index() {
@@ -12,11 +12,20 @@ export default function Index() {
     allDevices,
     connectToDevice,
     connectedDevice,
-    force,
+    weightPacket,
+    timestampPacket,
     disconnectFromDevice,
     tareConnectedDevice,
   } = useBLE();
+  const [weights, setWeights] = useState<number[]>([]);
+  const [timestamps, setTimestamps] = useState<number[]>([]);
 
+
+  useEffect(() => {
+    setWeights([...weights, ...weightPacket].slice(-150));
+    setTimestamps([...timestamps, ...timestampPacket].slice(-150));
+  }, [timestampPacket])
+  
   const scanForDevices = async () => {
     const isPermissionsEnabled = await requestPermissions();
     if (isPermissionsEnabled) {
@@ -32,14 +41,14 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <LineChart/>
+      <LineChart weights={weights} timestamps={timestamps} isConnected={!!connectedDevice}/>
       <Button onPress={scanForDevices}>Connect to Tindeq</Button>
       {allDevices.map((device) => (
         <Button  key={device.name} onPress={() => connectToDevice(device)}>{device.name}</Button>
       ))}
       {connectedDevice? 
         <>
-            <Text>{force * 2.20462}</Text> 
+            <Text>{weightPacket[14]}</Text> 
             <Button onPress={tareConnectedDevice}>Tare</Button>
         </>
       : <></>}
