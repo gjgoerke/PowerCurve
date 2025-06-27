@@ -35,16 +35,16 @@ interface BluetoothLowEnergyApi {
     tareConnectedDevice: () => void;
     connectedDevice: Device | null;
     allDevices: Device[];
-    force: number;
-    timeStamp: number;
+    weightPacket: number[];
+    timestampPacket: number[];
   }
   
-function useBLE(): BluetoothLowEnergyApi {
+function useBLE2(): BluetoothLowEnergyApi {
     const bleManager = useMemo(() => new BleManager(), []);
     const [allDevices, setAllDevices] = useState<Device[]>([]);
     const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
-    const [force, setForce] = useState<number>(0); // In kilograms
-    const [timeStamp, setTimeStamp] = useState<number>(0); // In seconds
+    const [weightPacket, setWeightPacket] = useState<number[]>(new Array(15).fill(0)); // In kilograms
+    const [timestampPacket, setTimestampPacket] = useState<number[]>(new Array(15).fill(0)); // In seconds
     const [monitoringSubscription, setMonitoringSubscription] = useState<any>(null);
   
     const requestAndroid31Permissions = async () => {
@@ -144,22 +144,22 @@ function useBLE(): BluetoothLowEnergyApi {
             
             bleManager.cancelDeviceConnection(connectedDevice.id);
             setConnectedDevice(null);
-            setForce(0);
-            setTimeStamp(0);
+            setWeightPacket(new Array(15).fill(0));
+            setTimestampPacket(new Array(15).fill(0));
         }
     };
 
-    const onForceUpdate = (error: BleError | null, characteristic: Characteristic | null) => {
-        console.log("onForceUpdate called at:", new Date().toISOString());
+    const onWeightUpdate = (error: BleError | null, characteristic: Characteristic | null) => {
+        console.log("onWeightUpdate called at:", new Date().toISOString());
         console.log("Error:", error);
         console.log("Characteristic:", characteristic?.uuid);
         console.log("Has value:", !!characteristic?.value);
         
         if (error) {
-          console.log("BLE Error in onForceUpdate:", error);
+          console.log("BLE Error in onWeightUpdate:", error);
           return -1;
         } else if (!characteristic?.value) {
-          console.log("No Data was received in onForceUpdate");
+          console.log("No Data was received in onWeightUpdate");
           return -1;
         }
     
@@ -173,8 +173,9 @@ function useBLE(): BluetoothLowEnergyApi {
         
         let currentIndex = 0;
         let lastWeight = -1;
-        let avgWeight = 0;
         let lastTime = 0;
+        const weightPacketArray = new Array(15).fill(0);
+        const timestampPacketArray = new Array(15).fill(0);
         
         while (currentIndex < rawData.length - 2) { // Need at least 2 bytes for response + length
             const responseCode = rawData[currentIndex].charCodeAt(0);
@@ -192,13 +193,11 @@ function useBLE(): BluetoothLowEnergyApi {
             console.log("Weight measurement bytes:", valueBytes);
             
             // If length is 120, it contains multiple 8-byte measurements
-            // if (length) {
-                // Parse each 8-byte measurement within the value
-                // Format: struct.unpack("<fl") - 4 bytes float + 4 bytes long (microseconds)
+            // Parse each 8-byte measurement within the value
+            // Format: struct.unpack("<fl") - 4 bytes float + 4 bytes long (microseconds)
             const numMeasurements = length / 8; // 15 measurements
             console.log(`Parsing ${numMeasurements} individual measurements`);
 
-            let sumOfWeights = 0;
             for (let i = 0; i < numMeasurements; i++) {
                 const measurementStart = i * 8;
                 const weightBytes = valueBytes.slice(measurementStart, measurementStart + 4);
@@ -212,60 +211,26 @@ function useBLE(): BluetoothLowEnergyApi {
                 view.setUint8(2, weightBytes[2]);
                 view.setUint8(3, weightBytes[3]);
                 const weight = view.getFloat32(0, true); // little-endian
-                sumOfWeights += weight;
+                weightPacketArray[i] = weight;
                 // Parse timestamp as 32-bit integer (microseconds, little-endian)
                 const timestamp = (timestampBytes[3] << 24) | (timestampBytes[2] << 16) | (timestampBytes[1] << 8) | timestampBytes[0];
                 const timeSeconds = timestamp / 1.0e6; // Convert microseconds to seconds
+                timestampPacketArray[i] = timeSeconds;
+
+
                 console.log(`Measurement ${i + 1}: time=${timeSeconds}s, weight=${weight}`);
                 lastWeight = weight;
                 lastTime = timeSeconds;
             }
 
-            // Average the (15) measurements
-            avgWeight = sumOfWeights / numMeasurements;
-
-            // } else if (length === 4) {
-            //     // 4 bytes = 32-bit float
-            //     const buffer = new ArrayBuffer(4);
-            //     const view = new DataView(buffer);
-            //     view.setUint8(0, valueBytes[0]);
-            //     view.setUint8(1, valueBytes[1]);
-            //     view.setUint8(2, valueBytes[2]);
-            //     view.setUint8(3, valueBytes[3]);
-            //     lastWeight = view.getFloat32(0, true); // little-endian
-            //     console.log("Parsed weight (float):", lastWeight);
-            // } else if (length === 8) {
-            //     // 8 bytes = weight (4) + timestamp (4)
-            //     const weightBytes = valueBytes.slice(0, 4);
-            //     const timestampBytes = valueBytes.slice(4, 8);
-                
-            //     // Parse weight as 32-bit float (little-endian)
-            //     const buffer = new ArrayBuffer(4);
-            //     const view = new DataView(buffer);
-            //     view.setUint8(0, weightBytes[0]);
-            //     view.setUint8(1, weightBytes[1]);
-            //     view.setUint8(2, weightBytes[2]);
-            //     view.setUint8(3, weightBytes[3]);
-            //     lastWeight = view.getFloat32(0, true); // little-endian
-                
-            //     // Parse timestamp as 32-bit integer (microseconds, little-endian)
-            //     const timestamp = (timestampBytes[3] << 24) | (timestampBytes[2] << 16) | (timestampBytes[1] << 8) | timestampBytes[0];
-            //     const timeSeconds = timestamp / 1.0e6; // Convert microseconds to seconds
-                
-            //     console.log("Time (s):", timeSeconds);
-            //     console.log("Parsed weight (float):", lastWeight);
-            // }
         }
-          
           // Move to next measurement
           currentIndex += 2 + length;
         }
-        
         if (lastWeight !== -1) {
-          console.log("Averaged weight:", avgWeight);
           console.log("lastTime", lastTime);
-          setForce(avgWeight);
-          setTimeStamp(lastTime);
+          setWeightPacket(weightPacketArray);
+          setTimestampPacket(timestampPacketArray);
         }
       };
     
@@ -286,7 +251,7 @@ function useBLE(): BluetoothLowEnergyApi {
                 const subscription = device.monitorCharacteristicForService(
                     service_uuid,
                     notify_uuid,
-                    onForceUpdate
+                    onWeightUpdate
                 );
                 
                 setMonitoringSubscription(subscription);
@@ -329,10 +294,10 @@ function useBLE(): BluetoothLowEnergyApi {
         tareConnectedDevice,
         connectedDevice,
         allDevices,
-        force,
-        timeStamp
+        weightPacket,
+        timestampPacket
     };
     
 }
 
-export default useBLE;
+export default useBLE2;
