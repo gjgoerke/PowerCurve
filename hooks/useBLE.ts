@@ -39,7 +39,7 @@ interface BluetoothLowEnergyApi {
     timestampPacket: number[];
   }
   
-function useBLE2(): BluetoothLowEnergyApi {
+function useBLE(): BluetoothLowEnergyApi {
     const bleManager = useMemo(() => new BleManager(), []);
     const [allDevices, setAllDevices] = useState<Device[]>([]);
     const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
@@ -300,4 +300,4 @@ function useBLE2(): BluetoothLowEnergyApi {
     
 }
 
-export default useBLE2;
+export default useBLE;

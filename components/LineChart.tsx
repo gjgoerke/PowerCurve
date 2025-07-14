@@ -48,13 +48,13 @@ export default function LineChart ({weights, timestamps, isConnected} : LineChar
         
         // Start the path at the first point
         const x = scales.x(timestamps[0]);
-        const y = scales.y(weights[0]);
+        const y = scales.y(Math.max(weights[0], 0)); // We don't want the line drawn below 0.
         path.moveTo(x, y);
         
         // Draw lines to all subsequent points
         for(let i = 1; i < timestamps.length; i++) {
             const x = scales.x(timestamps[i]);
-            const y = scales.y(weights[i]);
+            const y = scales.y(Math.max(weights[i], 0)); // We don't want the line drawn below 0.
             path.lineTo(x, y);  
         }
         

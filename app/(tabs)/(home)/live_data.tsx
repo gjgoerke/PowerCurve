@@ -2,10 +2,10 @@ import React, {useEffect, useState} from "react";
 import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
-import useBLE from "@/hooks/useBLE";
 import LineChart from "@/components/LineChart";
+import { useBLEContext } from "@/context/BLEContext";
 
-export default function Index() {
+export default function LiveData() {
   const {
     requestPermissions,
     scanForPeripherals,
@@ -14,9 +14,8 @@ export default function Index() {
     connectedDevice,
     weightPacket,
     timestampPacket,
-    disconnectFromDevice,
     tareConnectedDevice,
-  } = useBLE();
+  } = useBLEContext();
   const [weights, setWeights] = useState<number[]>([]);
   const [timestamps, setTimestamps] = useState<number[]>([]);
 
