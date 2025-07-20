@@ -173,7 +173,7 @@ export default function DeviceScanModal({visible, setVisible} : Props) {
                                             mode="contained" 
                                             onPress={scanForDevices}
                                             style={styles.scanButton}
-                                            icon="bluetooth-search"
+                                            icon="bluetooth-connect"
                                         >
                                             Scan for Devices
                                         </Button>
