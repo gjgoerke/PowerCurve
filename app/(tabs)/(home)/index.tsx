@@ -9,7 +9,7 @@ import { router } from "expo-router";
 export default function Index() {
   const {
     requestPermissions,
-    scanForPeripherals,
+    scanForDevices,
     allDevices,
     connectToDevice,
     connectedDevice,
@@ -25,13 +25,6 @@ export default function Index() {
     setWeights([...weights, ...weightPacket].slice(-150));
     setTimestamps([...timestamps, ...timestampPacket].slice(-150));
   }, [timestampPacket])
-  
-  const scanForDevices = async () => {
-    const isPermissionsEnabled = await requestPermissions();
-    if (isPermissionsEnabled) {
-      scanForPeripherals();
-    }
-  };
 
   const onLiveDataPress = () => {
     router.navigate('/(tabs)/(home)/live_data');

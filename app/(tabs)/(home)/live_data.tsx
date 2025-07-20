@@ -8,7 +8,7 @@ import { useBLEContext } from "@/context/BLEContext";
 export default function LiveData() {
   const {
     requestPermissions,
-    scanForPeripherals,
+    scanForDevices,
     allDevices,
     connectToDevice,
     connectedDevice,
@@ -24,13 +24,6 @@ export default function LiveData() {
     setWeights([...weights, ...weightPacket].slice(-150));
     setTimestamps([...timestamps, ...timestampPacket].slice(-150));
   }, [timestampPacket])
-  
-  const scanForDevices = async () => {
-    const isPermissionsEnabled = await requestPermissions();
-    if (isPermissionsEnabled) {
-      scanForPeripherals();
-    }
-  };
 
   return (
     <View
