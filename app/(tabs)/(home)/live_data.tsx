@@ -16,14 +16,6 @@ export default function LiveData() {
     timestampPacket,
     tareConnectedDevice,
   } = useBLEContext();
-  const [weights, setWeights] = useState<number[]>([]);
-  const [timestamps, setTimestamps] = useState<number[]>([]);
-
-
-  useEffect(() => {
-    setWeights([...weights, ...weightPacket].slice(-150));
-    setTimestamps([...timestamps, ...timestampPacket].slice(-150));
-  }, [timestampPacket])
 
   return (
     <View
@@ -33,7 +25,7 @@ export default function LiveData() {
         alignItems: "center",
       }}
     >
-      <LineChart weights={weights} timestamps={timestamps} isConnected={!!connectedDevice}/>
+      <LineChart/>
       <Button onPress={scanForDevices}>Connect to Tindeq</Button>
       {allDevices.map((device) => (
         <Button  key={device.name} onPress={() => connectToDevice(device)}>{device.name}</Button>

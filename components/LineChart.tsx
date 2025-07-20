@@ -1,7 +1,9 @@
 import { Skia, Canvas, Path, Text, matchFont } from "@shopify/react-native-skia";
 import { useWindowDimensions, Platform } from "react-native";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { scaleLinear } from "d3";
+
+import { useBLEContext } from "@/context/BLEContext";
 
 export interface DataPoint {
     forceKg: number;
@@ -9,12 +11,36 @@ export interface DataPoint {
 }
 
 interface LineChartProps {
-    weights: number[];
-    timestamps: number[];
-    isConnected: boolean;
+
 }
 
-export default function LineChart ({weights, timestamps, isConnected} : LineChartProps) {
+export default function LineChart ({} : LineChartProps) {
+
+    /*
+    * BLE Stuff
+    */
+    const {
+        requestPermissions,
+        scanForDevices,
+        isScanningForDevices,
+        allDevices,
+        connectToDevice,
+        connectedDevice,
+        weightPacket,
+        timestampPacket,
+        tareConnectedDevice,
+    } = useBLEContext();
+
+    const [weights, setWeights] = useState<number[]>([]);
+    const [timestamps, setTimestamps] = useState<number[]>([]);
+  
+  
+    useEffect(() => {
+      setWeights([...weights, ...weightPacket].slice(-150));
+      setTimestamps([...timestamps, ...timestampPacket].slice(-150));
+    }, [timestampPacket])
+
+
     const {width} = useWindowDimensions()
     const chartWidth = width;
     const chartHeight = 350;
@@ -101,7 +127,7 @@ export default function LineChart ({weights, timestamps, isConnected} : LineChar
             }
             <Path 
                 path={path} 
-                color={isConnected ? "blue" : "gray"} 
+                color={connectedDevice? "blue" : "gray"} 
                 style="stroke" 
                 strokeWidth={2}
             />
