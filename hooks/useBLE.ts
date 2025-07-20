@@ -29,7 +29,8 @@ const notify_uuid = "7e4e1702-1ea6-40c9-9dcc-13d34ffead57";
 
 interface BluetoothLowEnergyApi {
     requestPermissions(): Promise<boolean>;
-    scanForPeripherals(): void;
+    scanForDevices(): void;
+    isScanningForDevices: boolean;
     connectToDevice: (deviceId: Device) => Promise<void>;
     disconnectFromDevice: () => void;
     tareConnectedDevice: () => void;
@@ -46,6 +47,7 @@ function useBLE(): BluetoothLowEnergyApi {
     const [weightPacket, setWeightPacket] = useState<number[]>(new Array(15).fill(0)); // In kilograms
     const [timestampPacket, setTimestampPacket] = useState<number[]>(new Array(15).fill(0)); // In seconds
     const [monitoringSubscription, setMonitoringSubscription] = useState<any>(null);
+    const [isScanningForDevices, setIsScanningForDevices] = useState<boolean>(false);
   
     const requestAndroid31Permissions = async () => {
         const bluetoothScanPermission = await PermissionsAndroid.request(
@@ -106,29 +108,46 @@ function useBLE(): BluetoothLowEnergyApi {
     const isDuplicateDevice = (devices: Device[], nextDevice: Device) =>
         devices.findIndex((device) => nextDevice.id === device.id) > -1;
     
-    const scanForPeripherals = () =>
-        bleManager.startDeviceScan(null, null, (error, device) => {
-        if (error) {
-            console.log(error);
-        }
-        if (device && device.name?.includes("Progressor")) {
-            setAllDevices((prevState: Device[]) => {
-            if (!isDuplicateDevice(prevState, device)) {
-                return [...prevState, device];
-            }
-            return prevState;
-            });
-        }
-        });
+    const scanForPeripherals = () =>{
+      setIsScanningForDevices(true);
+      bleManager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+          console.log(error);
+      }
+      if (device && device.name?.includes("Progressor")) {
+          setAllDevices((prevState: Device[]) => {
+          if (!isDuplicateDevice(prevState, device)) {
+              return [...prevState, device];
+          }
+          return prevState;
+          });
+      }
+    });
+    setTimeout(()=>{
+      bleManager.stopDeviceScan();
+      setIsScanningForDevices(false);
+    }, 20000);
+    console.log('scanningForDevices := false')
+  }
+
+    const scanForDevices = async () => {
+      const isPermissionsEnabled = await requestPermissions();
+      if (isPermissionsEnabled) {
+        scanForPeripherals();
+      }
+    };
 
     const connectToDevice = async (device: Device) => {
+      if(isScanningForDevices) {
+        bleManager.stopDeviceScan();
+        setIsScanningForDevices(false);
+      }
         try {
             const deviceConnection = await bleManager.connectToDevice(device.id);
             setConnectedDevice(deviceConnection);
             await deviceConnection.discoverAllServicesAndCharacteristics();
             bleManager.stopDeviceScan();
             setTimeout(() => {startStreamingData(deviceConnection)}, 100);
-
         } catch (e) {
             console.log("FAILED TO CONNECT", e);
         }
@@ -234,7 +253,7 @@ function useBLE(): BluetoothLowEnergyApi {
         }
       };
     
-    const startStreamingData = async (device: Device) => {
+    const startStreamingData = async (device: Device, retryCount = 0) => {
         if (device) {
             try {
                 // Send command to start weight measurement
@@ -259,12 +278,18 @@ function useBLE(): BluetoothLowEnergyApi {
                 
             } catch (error) {
                 console.log("Error in startStreamingData:", error);
+                if (retryCount < 5) {
+                  console.log('Trying to connect to device. Attempt ' + (retryCount + 1) + ' out of 5.')
+                  setTimeout(() => {
+                    startStreamingData(device, retryCount + 1);
+                  }, 200 * (retryCount + 1));
+                }
+
             }
         } else {
             console.log("No Device Connected");
         }
     };
-
 
     const tareConnectedDevice = async () => {
         if (connectedDevice) {
@@ -288,7 +313,8 @@ function useBLE(): BluetoothLowEnergyApi {
 
     return {
         requestPermissions,
-        scanForPeripherals,
+        scanForDevices,
+        isScanningForDevices,
         connectToDevice,
         disconnectFromDevice,
         tareConnectedDevice,

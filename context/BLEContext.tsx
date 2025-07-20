@@ -4,7 +4,8 @@ import { Device } from 'react-native-ble-plx';
 
 interface BLEContextType {
     requestPermissions: () => Promise<boolean>;
-    scanForPeripherals: () => void;
+    scanForDevices: () => void;
+    isScanningForDevices: boolean;
     connectToDevice: (device: Device) => Promise<void>;
     disconnectFromDevice: () => void;
     tareConnectedDevice: () => void;
