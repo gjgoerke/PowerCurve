@@ -38,6 +38,16 @@ export default function TabLayout() {
                     ),
                 }} 
             /> 
+            <Tabs.Screen
+                name="(trainingtest)"
+                options={{
+                    title: 'Test',
+                    headerTitle: 'Home',
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons name={focused ? 'barbell-sharp' : 'barbell-outline'} color={color} size={24}/>
+                    ),
+                }} 
+            /> 
         </Tabs>
     );
 }

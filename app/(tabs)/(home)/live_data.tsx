@@ -4,6 +4,7 @@ import { Button } from "react-native-paper";
 
 import LineChart from "@/components/LineChart";
 import { useBLEContext } from "@/context/BLEContext";
+import LineChartBLE from "@/components/LineChartBLE";
 
 export default function LiveData() {
   const {
@@ -25,7 +26,7 @@ export default function LiveData() {
         alignItems: "center",
       }}
     >
-      <LineChart/>
+      <LineChartBLE/>
       <Button onPress={scanForDevices}>Connect to Tindeq</Button>
       {allDevices.map((device) => (
         <Button  key={device.name} onPress={() => connectToDevice(device)}>{device.name}</Button>

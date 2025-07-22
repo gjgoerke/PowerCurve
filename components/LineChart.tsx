@@ -1,49 +1,29 @@
-import { Skia, Canvas, Path, Text, matchFont } from "@shopify/react-native-skia";
+import { Skia, Canvas, Path, Text, matchFont, Rect } from "@shopify/react-native-skia";
 import { useWindowDimensions, Platform } from "react-native";
 import { useMemo, useEffect, useState } from "react";
 import { scaleLinear } from "d3";
 
 import { useBLEContext } from "@/context/BLEContext";
-
-export interface DataPoint {
-    forceKg: number;
-    timestamp: number;
-}
+import { TrainingParams } from "@/types/types";
+import { useTheme } from "react-native-paper";
 
 interface LineChartProps {
-
+    trainingParams?: TrainingParams;
+    weights: number[];
+    timestamps: number[];
 }
 
-export default function LineChart ({} : LineChartProps) {
+export default function LineChart ({trainingParams, weights, timestamps} : LineChartProps) {
+
+    // Paper Theme
+    const theme = useTheme();
 
     /*
-    * BLE Stuff
+    *   Chart Dimensions
     */
-    const {
-        requestPermissions,
-        scanForDevices,
-        isScanningForDevices,
-        allDevices,
-        connectToDevice,
-        connectedDevice,
-        weightPacket,
-        timestampPacket,
-        tareConnectedDevice,
-    } = useBLEContext();
-
-    const [weights, setWeights] = useState<number[]>([]);
-    const [timestamps, setTimestamps] = useState<number[]>([]);
-  
-  
-    useEffect(() => {
-      setWeights([...weights, ...weightPacket].slice(-150));
-      setTimestamps([...timestamps, ...timestampPacket].slice(-150));
-    }, [timestampPacket])
-
-
-    const {width} = useWindowDimensions()
+    const { height, width } = useWindowDimensions()
+    const chartHeight = 450;
     const chartWidth = width;
-    const chartHeight = 350;
 
     const scales = useMemo(() => {
         // Handle empty arrays
@@ -59,6 +39,7 @@ export default function LineChart ({} : LineChartProps) {
         const x = scaleLinear().domain(xDomain).range([0, chartWidth]);
         
         // Y-axis: forces → chart height (inverted for screen coordinates)
+        const yModifier = trainingParams ? trainingParams.trainingLoad + trainingParams.trainingLoadTolerance : 0;
         const yDomain = [0, Math.max(...weights, 20)];
         const y = scaleLinear().domain(yDomain).range([chartHeight, 0]);
         return {x, y};
@@ -101,8 +82,23 @@ export default function LineChart ({} : LineChartProps) {
 
     // X-Axis
     const xTicks = scales.x.ticks(5);
+
+    /*
+    *   
+    */
+
     return (
         <Canvas style = {{width: chartWidth, height: chartHeight}}>
+            {
+                trainingParams && 
+                <Rect
+                    x={0} 
+                    y={scales.y(17)} 
+                    height={scales.y(5)} 
+                    width={width} 
+                    color={theme.colors.primaryContainer}
+                />
+            }
             {
                 yTicks.map((value) => (
                     <Text
@@ -127,7 +123,7 @@ export default function LineChart ({} : LineChartProps) {
             }
             <Path 
                 path={path} 
-                color={connectedDevice? "blue" : "gray"} 
+                color={theme.colors.primary} 
                 style="stroke" 
                 strokeWidth={2}
             />

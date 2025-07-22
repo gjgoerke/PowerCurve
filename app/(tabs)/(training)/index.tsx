@@ -5,6 +5,7 @@ import { Card, Text as PaperText, TextInput, SegmentedButtons, Button, Menu, Div
 
 import { useBLEContext } from "@/context/BLEContext";
 import DeviceScanModal from "@/components/DeviceScanModal";
+import { TrainingParams } from "@/types/types";
 
 
 const styles = StyleSheet.create({
@@ -49,10 +50,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         paddingHorizontal: 16,
         paddingVertical: 8,
-    },
-    gripChip: {
-        marginHorizontal: 4,
-        marginVertical: 2,
     },
     segmentedButtonsContainer: {
         marginVertical: 8,
@@ -153,9 +150,29 @@ export default function Index() {
         setStateFunction(Number(numericValue));
     }, []);
 
+    const navigateToTrain = () => {
+        const trainingParams = {
+            grip,
+            hand,
+            durationMinutes,
+            durationSeconds,
+            restMinutes,
+            restSeconds,
+            numberOfSets,
+            trainingLoad,
+            trainingLoadTolerance,
+            timeTolerance,
+        };
+
+        router.replace({
+            pathname: '/(tabs)/(training)/train',
+            params: trainingParams
+        });
+    }
+
     const onBeginWorkout = () => {
         if(connectedDevice) {
-            router.replace('/(tabs)/(training)/train');
+            navigateToTrain();
         } else {
             setDeviceScanModalVisible(true);
         }
