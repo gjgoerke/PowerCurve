@@ -169,11 +169,6 @@ function useBLE(): BluetoothLowEnergyApi {
     };
 
     const onWeightUpdate = (error: BleError | null, characteristic: Characteristic | null) => {
-        console.log("onWeightUpdate called at:", new Date().toISOString());
-        console.log("Error:", error);
-        console.log("Characteristic:", characteristic?.uuid);
-        console.log("Has value:", !!characteristic?.value);
-        
         if (error) {
           console.log("BLE Error in onWeightUpdate:", error);
           return -1;
@@ -183,10 +178,6 @@ function useBLE(): BluetoothLowEnergyApi {
         }
     
         const rawData = base64.decode(characteristic.value);
-        console.log("Raw data received:", rawData);
-        console.log("Raw data length:", rawData.length);
-        console.log("Raw data bytes:", Array.from(rawData).map(c => c.charCodeAt(0)));
-        
         // Format: [response_code][length][value][response_code][length][value]...
         // Each measurement starts with response code (1 byte) + length (1 byte) + value (n bytes)
         
@@ -199,9 +190,7 @@ function useBLE(): BluetoothLowEnergyApi {
         while (currentIndex < rawData.length - 2) { // Need at least 2 bytes for response + length
             const responseCode = rawData[currentIndex].charCodeAt(0);
             const length = rawData[currentIndex + 1].charCodeAt(0);
-            
-            console.log(`Measurement at index ${currentIndex}: response=${responseCode}, length=${length}`);
-            
+                        
             if (responseCode === 0x01 && currentIndex + 2 + length <= rawData.length) {
                 // This is a weight measurement (weight + timestamp).
                 const valueBytes = [];
@@ -209,13 +198,10 @@ function useBLE(): BluetoothLowEnergyApi {
                 valueBytes.push(rawData[currentIndex + 2 + i].charCodeAt(0));
             }
             
-            console.log("Weight measurement bytes:", valueBytes);
-            
             // If length is 120, it contains multiple 8-byte measurements
             // Parse each 8-byte measurement within the value
             // Format: struct.unpack("<fl") - 4 bytes float + 4 bytes long (microseconds)
             const numMeasurements = length / 8; // 15 measurements
-            console.log(`Parsing ${numMeasurements} individual measurements`);
 
             for (let i = 0; i < numMeasurements; i++) {
                 const measurementStart = i * 8;
@@ -235,9 +221,6 @@ function useBLE(): BluetoothLowEnergyApi {
                 const timestamp = (timestampBytes[3] << 24) | (timestampBytes[2] << 16) | (timestampBytes[1] << 8) | timestampBytes[0];
                 const timeSeconds = timestamp / 1.0e6; // Convert microseconds to seconds
                 timestampPacketArray[i] = timeSeconds;
-
-
-                console.log(`Measurement ${i + 1}: time=${timeSeconds}s, weight=${weight}`);
                 lastWeight = weight;
                 lastTime = timeSeconds;
             }
@@ -247,7 +230,6 @@ function useBLE(): BluetoothLowEnergyApi {
           currentIndex += 2 + length;
         }
         if (lastWeight !== -1) {
-          console.log("lastTime", lastTime);
           setWeightPacket(weightPacketArray);
           setTimestampPacket(timestampPacketArray);
         }
@@ -274,7 +256,6 @@ function useBLE(): BluetoothLowEnergyApi {
                 );
                 
                 setMonitoringSubscription(subscription);
-                console.log("Started monitoring weight data");
                 
             } catch (error) {
                 console.log("Error in startStreamingData:", error);
