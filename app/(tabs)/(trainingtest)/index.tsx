@@ -48,7 +48,7 @@ export default function TrainingTest() {
 
     return(
         <View>
-            <Training trainingParams={trainingParams} weights={weights} timestamps={timestamps}/>
+            <Training trainingParams={trainingParams} bluetoothEnabled={false}/>
         </View>
     );
 }

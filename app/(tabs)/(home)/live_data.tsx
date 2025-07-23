@@ -2,9 +2,7 @@ import React, {useEffect, useState} from "react";
 import { Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
-import LineChart from "@/components/LineChart";
 import { useBLEContext } from "@/context/BLEContext";
-import LineChartBLE from "@/components/LineChartBLE";
 
 export default function LiveData() {
   const {

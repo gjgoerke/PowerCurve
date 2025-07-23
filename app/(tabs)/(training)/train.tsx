@@ -1,9 +1,8 @@
-import LineChart from "@/components/LineChart";
-import LineChartBLE from "@/components/LineChartBLE";
+import Training from "@/components/Training";
 import { TrainingParams } from "@/types/types";
 import { useLocalSearchParams } from "expo-router";
-import React, {useState, useCallback} from "react";
-import { View, StyleSheet, Text } from "react-native";
+import React from "react";
+import { View } from "react-native";
 
 export default function Train() {
     const params = useLocalSearchParams();
@@ -25,7 +24,7 @@ export default function Train() {
 
     return(
         <View>
-            <LineChartBLE trainingParams={trainingParams}/>
+            <Training trainingParams={trainingParams} bluetoothEnabled={true} />
         </View>
     );
 }

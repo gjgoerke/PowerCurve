@@ -10,9 +10,11 @@ interface LineChartProps {
     trainingParams: TrainingParams;
     weights: number[];
     timestamps: number[];
+    height: number;
+    marginTop: number;
 }
 
-export default function LineChart ({trainingParams, weights, timestamps} : LineChartProps) {
+export default function LineChart ({trainingParams, weights, timestamps, height, marginTop} : LineChartProps) {
 
     // Paper Theme
     const theme = useTheme();
@@ -20,8 +22,8 @@ export default function LineChart ({trainingParams, weights, timestamps} : LineC
     /*
     *   Chart Dimensions
     */
-    const { height, width } = useWindowDimensions()
-    const chartHeight = height - 150;
+    const { width } = useWindowDimensions()
+    const chartHeight = height;
     const chartWidth = width;
 
     const scales = useMemo(() => {
@@ -82,7 +84,7 @@ export default function LineChart ({trainingParams, weights, timestamps} : LineC
     const xTicks = scales.x.ticks(5);
     
     return (
-        <Canvas style = {{width: chartWidth, height: chartHeight, marginTop: 20}}>
+        <Canvas style = {{width: chartWidth, height: chartHeight, marginTop: marginTop}}>
             {
                 trainingParams && 
                 <Rect

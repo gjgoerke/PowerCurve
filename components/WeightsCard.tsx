@@ -6,16 +6,19 @@ import { useTheme } from 'react-native-paper';
 
 interface WeightsCardProps {
     weights: number[];
+    height: number;
+    margin: number;
+    padding: number;
 }
 
-export default function WeightsCard ({weights} : WeightsCardProps) {
+export default function WeightsCard ({weights, height, margin, padding} : WeightsCardProps) {
 
     const theme = useTheme();
     const styles = useMemo(() => StyleSheet.create({
         container: {
-            padding: 16,
-            margin: 8,
-            minHeight: 150, 
+            padding: padding,
+            margin: margin,
+            minHeight: height, 
         },
         maxAvgContainer: {
             justifyContent: 'space-around',
