@@ -1,14 +1,13 @@
 import { Skia, Canvas, Path, Text, matchFont, Rect } from "@shopify/react-native-skia";
 import { useWindowDimensions, Platform } from "react-native";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { scaleLinear } from "d3";
 
-import { useBLEContext } from "@/context/BLEContext";
 import { TrainingParams } from "@/types/types";
 import { useTheme } from "react-native-paper";
 
 interface LineChartProps {
-    trainingParams?: TrainingParams;
+    trainingParams: TrainingParams;
     weights: number[];
     timestamps: number[];
 }
@@ -22,7 +21,7 @@ export default function LineChart ({trainingParams, weights, timestamps} : LineC
     *   Chart Dimensions
     */
     const { height, width } = useWindowDimensions()
-    const chartHeight = 450;
+    const chartHeight = height - 150;
     const chartWidth = width;
 
     const scales = useMemo(() => {
@@ -39,8 +38,7 @@ export default function LineChart ({trainingParams, weights, timestamps} : LineC
         const x = scaleLinear().domain(xDomain).range([0, chartWidth]);
         
         // Y-axis: forces → chart height (inverted for screen coordinates)
-        const yModifier = trainingParams ? trainingParams.trainingLoad + trainingParams.trainingLoadTolerance : 0;
-        const yDomain = [0, Math.max(...weights, 20)];
+        const yDomain = [0, Math.max(20, ...weights, trainingParams.trainingLoad + trainingParams.trainingLoadTolerance) + 10];
         const y = scaleLinear().domain(yDomain).range([chartHeight, 0]);
         return {x, y};
     }, [timestamps, weights, chartWidth, chartHeight]);
@@ -82,19 +80,15 @@ export default function LineChart ({trainingParams, weights, timestamps} : LineC
 
     // X-Axis
     const xTicks = scales.x.ticks(5);
-
-    /*
-    *   
-    */
-
+    
     return (
-        <Canvas style = {{width: chartWidth, height: chartHeight}}>
+        <Canvas style = {{width: chartWidth, height: chartHeight, marginTop: 20}}>
             {
                 trainingParams && 
                 <Rect
                     x={0} 
-                    y={scales.y(17)} 
-                    height={scales.y(5)} 
+                    y={scales.y(trainingParams.trainingLoad + trainingParams.trainingLoadTolerance)} 
+                    height={chartHeight - scales.y(trainingParams.trainingLoadTolerance)} 
                     width={width} 
                     color={theme.colors.primaryContainer}
                 />

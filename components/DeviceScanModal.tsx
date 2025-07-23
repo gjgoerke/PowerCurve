@@ -112,9 +112,10 @@ const styles = StyleSheet.create({
 interface Props {
     visible: boolean;
     setVisible: React.Dispatch<React.SetStateAction<boolean>>;
+    navigateToTrain: () => void;
 };
 
-export default function DeviceScanModal({visible, setVisible} : Props) {
+export default function DeviceScanModal({visible, setVisible, navigateToTrain} : Props) {
     const {
         requestPermissions,
         scanForDevices,
@@ -136,7 +137,7 @@ export default function DeviceScanModal({visible, setVisible} : Props) {
     const handleTare = () => {
         tareConnectedDevice();
         setVisible(false);
-        router.navigate('/(tabs)/(training)/train');
+        navigateToTrain();
     };
 
     return(

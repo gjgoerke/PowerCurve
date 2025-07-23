@@ -26,7 +26,6 @@ export default function LiveData() {
         alignItems: "center",
       }}
     >
-      <LineChartBLE/>
       <Button onPress={scanForDevices}>Connect to Tindeq</Button>
       {allDevices.map((device) => (
         <Button  key={device.name} onPress={() => connectToDevice(device)}>{device.name}</Button>

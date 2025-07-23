@@ -11,15 +11,17 @@ export default function Train() {
     const trainingParams: TrainingParams = {
         grip: params.grip as string,
         hand: params.hand as string,
-        durationMinutes: Number(params.durationMinutes),
-        durationSeconds: Number(params.durationSeconds),
-        restMinutes: Number(params.restMinutes),
-        restSeconds: Number(params.restSeconds),
-        numberOfSets: Number(params.numberOfSets),
-        trainingLoad: Number(params.trainingLoad),
-        trainingLoadTolerance: Number(params.trainingLoadTolerance),
-        timeTolerance: Number(params.timeTolerance),
+        durationMinutes: parseInt(params.durationMinutes as string),
+        durationSeconds: parseInt(params.durationSeconds as string),
+        restMinutes: parseInt(params.restMinutes as string),
+        restSeconds: parseInt(params.restSeconds as string),
+        numberOfSets: parseInt(params.numberOfSets as string),
+        trainingLoad: parseInt(params.trainingLoad as string),
+        trainingLoadTolerance: parseInt(params.trainingLoadTolerance as string),
+        timeTolerance: parseInt(params.timeTolerance as string),
     };
+
+    console.log(trainingParams)
 
     return(
         <View>

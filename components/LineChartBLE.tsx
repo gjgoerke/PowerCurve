@@ -5,7 +5,7 @@ import { TrainingParams } from "@/types/types";
 import { useBLEContext } from "@/context/BLEContext";
 
 interface LineChartBLEProps {
-    trainingParams?: TrainingParams;
+    trainingParams: TrainingParams;
 }
 
 

@@ -354,6 +354,7 @@ export default function Index() {
         <DeviceScanModal 
             visible={deviceScanModalVisible} 
             setVisible={setDeviceScanModalVisible} 
+            navigateToTrain={navigateToTrain}
         />
         </>
     );

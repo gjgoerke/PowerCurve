@@ -1,8 +1,7 @@
-import LineChart from "@/components/LineChart";
-import LineChartBLE from "@/components/LineChartBLE";
+import Training from "@/components/Training";
 import { TrainingParams } from "@/types/types";
 import React, {useState, useEffect} from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View } from "react-native";
 
 export default function TrainingTest() {
 
@@ -14,7 +13,7 @@ export default function TrainingTest() {
         restMinutes: 0,
         restSeconds: 20,
         numberOfSets: 10,
-        trainingLoad: 50,
+        trainingLoad: 40,
         trainingLoadTolerance: 5,
         timeTolerance: 5,
     };
@@ -49,7 +48,7 @@ export default function TrainingTest() {
 
     return(
         <View>
-            <LineChart trainingParams={trainingParams} weights={weights} timestamps={timestamps}/>
+            <Training trainingParams={trainingParams} weights={weights} timestamps={timestamps}/>
         </View>
     );
 }
