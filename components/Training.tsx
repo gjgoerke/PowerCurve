@@ -3,7 +3,6 @@ import { StyleSheet, View, useWindowDimensions } from "react-native";
 
 import { TrainingParams } from "@/types/types";
 import LineChart from "./LineChart";
-import LineChartBLE from "./LineChartBLE";
 import WeightsCard from "./WeightsCard";
 import { useBLEContext } from "@/context/BLEContext";
 
@@ -19,16 +18,13 @@ const styles = StyleSheet.create({
         flex: 1
     },
 });
-
 interface TrainingProps {
     trainingParams: TrainingParams;
     bluetoothEnabled: boolean;
 }
-
 export default function Training ({trainingParams, bluetoothEnabled} : TrainingProps) {
     const [weightPack, setWeightPack] = useState<number[]>([]);
     const [timestampPack, setTimestampPack] = useState<number[]>([]); 
-
     /*
     * BLE Stuff
     * bluetoothEnabled == true is the normal mode. bluetoothEnabled == false reverts to a test data stream for development.
@@ -79,19 +75,21 @@ export default function Training ({trainingParams, bluetoothEnabled} : TrainingP
     const weightsCardPadding = 16;
     const weightsCardHeight = weightsCardRatio * screenHeight;
 
-    const lineChartMarginTop = weightsCardHeight;
-    const lineChartHeight = screenHeight - lineChartMarginTop;
+    const lineChartMarginTop = weightsCardHeight - 100;
+    const lineChartHeight = 0.7 * screenHeight - 45;
 
     return (
         <View style={styles.container}>
             <View style={styles.container}>
                 <View style={styles.weightsCardContainer}>
                     <WeightsCard 
+                        weightPacket={weightPack}
+                        timestampPacket={timestampPack}
                         weights={weights} 
                         height={weightsCardRatio * screenHeight}
                         margin={weightsCardMargin}
                         padding={weightsCardPadding}
-                        />
+                    />
                 </View>
                 <View style={styles.chartContainer}>
                     <LineChart 

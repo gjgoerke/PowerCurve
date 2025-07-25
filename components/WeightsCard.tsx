@@ -5,13 +5,13 @@ import { Card, Text as PaperText } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 
 interface WeightsCardProps {
-    weights: number[];
+    weightPacket: number[];
     height: number;
     margin: number;
     padding: number;
 }
 
-export default function WeightsCard ({weights, height, margin, padding} : WeightsCardProps) {
+export default function WeightsCard ({weightPacket, height, margin, padding} : WeightsCardProps) {
 
     const theme = useTheme();
     const styles = useMemo(() => StyleSheet.create({
@@ -45,11 +45,21 @@ export default function WeightsCard ({weights, height, margin, padding} : Weight
 
     const [maxWeight, setMaxWeight] = useState<number>(0);
     const [avgWeight, setAvgWeight] = useState<number>(0);
+    const [numMeasurementsSeen, setNumMeasurementsSeen] = useState<number>(0);
+    const [sumOfWeights, setSumOfWeights] = useState<number>(0);
 
     useEffect(() => {
-        setMaxWeight(Math.max(maxWeight, ...weights));
-    }, [weights]);
-    const currentWeight = weights[weights.length - 1]; // Get the last weight instead of hardcoded index
+        setMaxWeight(Math.max(maxWeight, ...weightPacket));
+        let length = weightPacket.length;
+        let sum = 0;
+        for(let i = 0; i < length; i++) {
+            sum += weightPacket[i];
+        }
+        setNumMeasurementsSeen(numMeasurementsSeen + weightPacket.length);
+        setSumOfWeights(sumOfWeights + sum);
+        setAvgWeight(sumOfWeights / numMeasurementsSeen);
+    }, [weightPacket]);
+    const currentWeight = weightPacket[weightPacket.length - 1]; // Get the last weight instead of hardcoded index
 
     if(!currentWeight) {
         return null;
