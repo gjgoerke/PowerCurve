@@ -1,23 +1,41 @@
 import { Skia, Canvas, Path, Text, matchFont, Rect } from "@shopify/react-native-skia";
-import { useWindowDimensions, Platform } from "react-native";
-import { useMemo } from "react";
-import { scaleLinear } from "d3";
+import { useWindowDimensions, Platform, StyleSheet } from "react-native";
+import { useMemo, useState, useEffect} from "react";
+import { color, scaleLinear } from "d3";
 
 import { TrainingParams } from "@/types/types";
 import { useTheme } from "react-native-paper";
 
 interface LineChartProps {
     trainingParams: TrainingParams;
-    weights: number[];
-    timestamps: number[];
+    weightPacket: number[];
+    timestampPacket: number[];
     height: number;
     marginTop: number;
 }
 
-export default function LineChart ({trainingParams, weights, timestamps, height, marginTop} : LineChartProps) {
+export default function LineChart ({trainingParams, weightPacket, timestampPacket, height, marginTop} : LineChartProps) {
+
+        
+    const [weights, setWeights] = useState<number[]>([]);
+    const [timestamps, setTimestamps] = useState<number[]>([]);
+    
+    useEffect(() => {
+        setWeights([...weights, ...weightPacket].slice(-150));
+        setTimestamps([...timestamps, ...timestampPacket].slice(-150));
+    }, [timestampPacket])
 
     // Paper Theme
     const theme = useTheme();
+
+    // Styling
+    const styles = useMemo(() => StyleSheet.create({
+        axisText: {
+            color: theme.colors.secondary,
+            fontSize: 14,
+        }
+    }), [theme]);
+
 
     /*
     *   Chart Dimensions
@@ -69,7 +87,7 @@ export default function LineChart ({trainingParams, weights, timestamps, height,
     }, [timestamps, weights, scales]);
 
     // Y-Axis
-    const fontFamily = Platform.select({ ios: "Helvetica", default: "serif" });
+    const fontFamily = theme.fonts.default.fontFamily
     const fontStyle = {
         fontFamily,
         fontSize: 14,
@@ -103,10 +121,11 @@ export default function LineChart ({trainingParams, weights, timestamps, height,
                         text={String(value)}
                         font={font}
                         key={value}
+                        color={theme.colors.secondary}
                     />
                 ))
             }
-            {
+            {/* {
                 xTicks.map((value) => (
                     <Text
                         x={scales.x(value)}
@@ -114,9 +133,10 @@ export default function LineChart ({trainingParams, weights, timestamps, height,
                         text={String(value)}
                         font={font}
                         key={value}
+                        color={theme.colors.secondary}
                     />
                 ))
-            }
+            } */}
             <Path 
                 path={path} 
                 color={theme.colors.primary} 

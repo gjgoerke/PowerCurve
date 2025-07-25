@@ -55,14 +55,6 @@ export default function Training ({trainingParams, bluetoothEnabled} : TrainingP
             }, newPacketRate);
         }, [])
     }
-    
-    const [weights, setWeights] = useState<number[]>([]);
-    const [timestamps, setTimestamps] = useState<number[]>([]);
-    
-    useEffect(() => {
-        setWeights([...weights, ...weightPack].slice(-150));
-        setTimestamps([...timestamps, ...timestampPack].slice(-150));
-    }, [timestampPack])
 
     /*
     *   Sizing of Line Chart and Weights Card
@@ -84,8 +76,6 @@ export default function Training ({trainingParams, bluetoothEnabled} : TrainingP
                 <View style={styles.weightsCardContainer}>
                     <WeightsCard 
                         weightPacket={weightPack}
-                        timestampPacket={timestampPack}
-                        weights={weights} 
                         height={weightsCardRatio * screenHeight}
                         margin={weightsCardMargin}
                         padding={weightsCardPadding}
@@ -94,8 +84,8 @@ export default function Training ({trainingParams, bluetoothEnabled} : TrainingP
                 <View style={styles.chartContainer}>
                     <LineChart 
                         trainingParams={trainingParams} 
-                        weights={weights} 
-                        timestamps={timestamps}
+                        weightPacket={weightPack} 
+                        timestampPacket={timestampPack}
                         height={lineChartHeight}
                         marginTop={lineChartMarginTop}
                     />
