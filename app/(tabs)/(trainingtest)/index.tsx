@@ -8,12 +8,12 @@ export default function TrainingTest() {
     const trainingParams: TrainingParams = {
         grip: "20mm edge",
         hand: "left",
-        durationMinutes: 1,
-        durationSeconds: 0,
+        durationMinutes: 0,
+        durationSeconds: 20,
         restMinutes: 0,
-        restSeconds: 20,
-        numberOfSets: 10,
-        trainingLoad: 40,
+        restSeconds: 10,
+        numberOfSets: 5,
+        trainingLoad: 20,
         trainingLoadTolerance: 5,
         timeTolerance: 5,
     };

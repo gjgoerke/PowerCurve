@@ -15,8 +15,6 @@ interface LineChartProps {
 }
 
 export default function LineChart ({trainingParams, weightPacket, timestampPacket, height, marginTop} : LineChartProps) {
-
-        
     const [weights, setWeights] = useState<number[]>([]);
     const [timestamps, setTimestamps] = useState<number[]>([]);
     

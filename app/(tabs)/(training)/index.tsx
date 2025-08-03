@@ -119,13 +119,13 @@ export default function Index() {
     const [grip, setGrip] = useState<Grip>('Heavy Artifact');
     const [hand, setHand] = useState<string>('left');
 
-    const [durationMinutes, setDurationMinutes] = useState<number>(1);
-    const [durationSeconds, setDurationSeconds] = useState<number>(0);
+    const [durationMinutes, setDurationMinutes] = useState<number>(0);
+    const [durationSeconds, setDurationSeconds] = useState<number>(20);
     const [restMinutes, setRestMinutes] = useState<number>(0);
-    const [restSeconds, setRestSeconds] = useState<number>(20);
-    const [numberOfSets, setNumberOfSets]  = useState<number>(10);
-    const [trainingLoad, setTrainingLoad] = useState<number>(50);
-    const [trainingLoadTolerance, setTrainingLoadTolerance] = useState<number>(5);
+    const [restSeconds, setRestSeconds] = useState<number>(10);
+    const [numberOfSets, setNumberOfSets]  = useState<number>(5);
+    const [trainingLoad, setTrainingLoad] = useState<number>(5);
+    const [trainingLoadTolerance, setTrainingLoadTolerance] = useState<number>(1);
     const [timeTolerance, setTimeTolerance] = useState<number>(5);
     
 
