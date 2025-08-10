@@ -1,8 +1,10 @@
-import Training from "@/components/Training";
-import { TrainingParams } from "@/types/types";
 import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { View } from "react-native";
+
+import Training from "@/components/Training";
+import { TrainingParams } from "@/types/types";
+
 
 export default function Train() {
     const params = useLocalSearchParams();
@@ -10,21 +12,22 @@ export default function Train() {
     const trainingParams: TrainingParams = {
         grip: params.grip as string,
         hand: params.hand as string,
-        durationMinutes: parseInt(params.durationMinutes as string),
-        durationSeconds: parseInt(params.durationSeconds as string),
-        restMinutes: parseInt(params.restMinutes as string),
-        restSeconds: parseInt(params.restSeconds as string),
-        numberOfSets: parseInt(params.numberOfSets as string),
-        trainingLoad: parseInt(params.trainingLoad as string),
-        trainingLoadTolerance: parseInt(params.trainingLoadTolerance as string),
-        timeTolerance: parseInt(params.timeTolerance as string),
+        durationMinutes: Number(params.durationMinutes),
+        durationSeconds: Number(params.durationSeconds),
+        restMinutes: Number(params.restMinutes),
+        restSeconds: Number(params.restSeconds),
+        numberOfSets: Number(params.numberOfSets),
+        trainingLoad: Number(params.trainingLoad),
+        trainingLoadTolerance: Number(params.trainingLoadTolerance),
+        timeTolerance: Number(params.timeTolerance),
+        simulationStream: params.simulationStream === 'true',
     };
 
     console.log(trainingParams)
 
     return(
         <View>
-            <Training trainingParams={trainingParams} bluetoothEnabled={true} />
+            <Training trainingParams={trainingParams}/>
         </View>
     );
 }

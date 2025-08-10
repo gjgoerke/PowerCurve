@@ -6,6 +6,7 @@ import { Card, Text as PaperText, TextInput, SegmentedButtons, Button, Menu, Div
 import { useBLEContext } from "@/context/BLEContext";
 import DeviceScanModal from "@/components/DeviceScanModal";
 import { TrainingParams } from "@/types/types";
+import { navigate } from "expo-router/build/global-state/routing";
 
 
 const styles = StyleSheet.create({
@@ -113,6 +114,8 @@ export default function Index() {
     /*
     * Input State
     */
+    const [simulationStream, setSimulationStream] = useState<boolean>(true);
+
     const [gripMenuVisible, setGripMenuVisible] = useState<boolean>(false);
     const [deviceScanModalVisible, setDeviceScanModalVisible] = useState<boolean>(false);
 
@@ -162,6 +165,7 @@ export default function Index() {
             trainingLoad,
             trainingLoadTolerance,
             timeTolerance,
+            simulationStream: simulationStream.toString()
         };
 
         router.replace({
@@ -171,7 +175,7 @@ export default function Index() {
     }
 
     const onBeginWorkout = () => {
-        if(connectedDevice) {
+        if(simulationStream || connectedDevice) {
             navigateToTrain();
         } else {
             setDeviceScanModalVisible(true);
@@ -181,6 +185,19 @@ export default function Index() {
     return (
         <>
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
+            {/* Dev Mode */}
+            <View style={styles.section}>
+            <PaperText style={styles.sectionTitle}>Use Simulation Data Stream</PaperText>
+                <SegmentedButtons
+                    value={simulationStream ? 'true' : 'false'}
+                    onValueChange={(value) => {setSimulationStream(value === 'true');}}
+                    buttons={[
+                        { value: 'true', label: 'True' },
+                        { value: 'false', label: 'False' },
+                    ]}
+                />
+            </View>
+
             {/* Grip Selection Section */}
             <View style={styles.section}>
                 <PaperText style={styles.sectionTitle}>Grip & Hand</PaperText>

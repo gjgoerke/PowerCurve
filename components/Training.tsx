@@ -7,10 +7,10 @@ import LineChart from "./LineChart";
 import WeightsCard from "./WeightsCard";
 import { useBLEContext } from "@/context/BLEContext";
 import { computeSetDuration } from "@/utils/trainingUtils";
+import useSimulationStream from "@/hooks/useSimulationStream";
 
 interface TrainingProps {
     trainingParams: TrainingParams;
-    bluetoothEnabled: boolean;
 }
 
 interface TrainingState {
@@ -87,19 +87,12 @@ const trainingReducer = (state: TrainingState, action: TrainingAction) => {
     }
 }
 
-export default function Training ({trainingParams, bluetoothEnabled} : TrainingProps) {
+export default function Training ({trainingParams} : TrainingProps) {
     const [weightPack, setWeightPack] = useState<number[]>([]);
     const [timestampPack, setTimestampPack] = useState<number[]>([]); 
-    const [lastWeight, setLastWeight] = useState<number>(0);
-    const [lastTime, setLastTime] = useState<number>(0);
 
 
-    /*
-    * BLE Stuff
-    * bluetoothEnabled == true is the normal mode. 
-    * bluetoothEnabled == false reverts to a test data stream for development.
-    */
-    if(bluetoothEnabled) {
+    if(!trainingParams.simulationStream) {
         const {
             weightPacket,
             timestampPacket,
@@ -109,27 +102,8 @@ export default function Training ({trainingParams, bluetoothEnabled} : TrainingP
             setTimestampPack(timestampPacket);
         }, [timestampPacket]);
     } else {
-        useEffect(() => {
-            const newPacketRate = 188; // Rate (in milliseconds) at which a new packet of 15 weights and 15 timestamps is created
-            let seconds = 0;
-            setInterval(() => {
-                const weights = new Array(15).fill(0);
-                const timestamps = new Array(15).fill(0);
-                for(let i = 0; i < 15; i++) {
-                    seconds += newPacketRate / 15000;
-                    timestamps[i] = seconds
-                    weights[i] = 45 + 3 * Math.sin( 4 * seconds);
-                }
-                setWeightPack(weights);
-                setTimestampPack(timestamps);
-            }, newPacketRate);
-        }, [])
+        useSimulationStream(setWeightPack, setTimestampPack, trainingParams);
     }
-
-    useEffect(() => {
-        setLastWeight(weightPack[weightPack.length]);
-        setLastTime(timestampPack[weightPack.length]);
-    }, [weightPack, timestampPack])
 
     /*
     *   Training Stuff
@@ -173,7 +147,7 @@ export default function Training ({trainingParams, bluetoothEnabled} : TrainingP
             dispatch({ type: 'ABOVE_THRESHOLD' });
         } 
         if(weightPackMax > 0 && weightPackMax < 0.5 * trainingParams.trainingLoad){
-            console.log(weightPackMax, ' < ', 0.5 * trainingParams.trainingLoad)
+            console.log(weightPackMax, ' < ', 0.5 * trainingParams.trainingLoad);
             dispatch({type: 'BELOW_THRESHOLD'});
         } 
     }, [weightPack, trainingParams]);

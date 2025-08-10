@@ -9,4 +9,5 @@ export interface TrainingParams {
     trainingLoad: number;
     trainingLoadTolerance: number;
     timeTolerance: number;
+    simulationStream: boolean;
 }
