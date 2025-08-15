@@ -1,11 +1,10 @@
-import React, {useEffect, useState} from "react";
-import { Text, View, StyleSheet } from "react-native";
+import React, {useEffect, useMemo, useState} from "react";
+import { View, StyleSheet } from "react-native";
 import { Button, Card, Text as PaperText } from "react-native-paper";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 
 import { useBLEContext } from "@/context/BLEContext";
-import LineChart from "@/components/LineChart";
 import { router } from "expo-router";
 
 const styles = StyleSheet.create({
@@ -52,39 +51,35 @@ export default function Index() {
 		setTimestamps([...timestamps, ...timestampPacket].slice(-150));
 	}, [timestampPacket])
 
-	const onLiveDataPress = () => {
-		router.navigate('/(tabs)/(home)/live_data');
-	}
-
 	return (
 		<View style={styles.container}>
 			<View style={styles.gridContainer}>
 				<View style={styles.row}>
-					<Card style={styles.card} onPress={onLiveDataPress} mode="contained">
+					<Card style={styles.card} onPress={() => router.navigate('/live_data')} mode="contained">
 						<Card.Title title="Live Data"/>
-            <Card.Content style={styles.cardContent}>
-            <Ionicons name="pulse-outline" size={92}></Ionicons>
-            </Card.Content>
+						<Card.Content style={styles.cardContent}>
+						<Ionicons name="pulse-outline" size={92}></Ionicons>
+						</Card.Content>
 					</Card>
-					<Card style={styles.card} mode="contained">
+					<Card style={styles.card} onPress={() => router.navigate('/train_form')} mode="contained">
 						<Card.Title title="Train"/>
-            <Card.Content>
-              <Ionicons name="barbell-outline" size={92}></Ionicons>
-            </Card.Content>
+						<Card.Content>
+						<Ionicons name="barbell-outline" size={92}></Ionicons>
+						</Card.Content>
 					</Card>
 				</View>
 				<View style={styles.row}>
-					<Card style={styles.card} mode="contained">
+					<Card style={styles.card} onPress={() => router.navigate('/grips')} mode="contained">
 						<Card.Title title="Grips"/>
-            <Card.Content>
-            <Ionicons name="hand-right-outline" size={92}></Ionicons>
-            </Card.Content>
+						<Card.Content>
+						<Ionicons name="hand-right-outline" size={92}></Ionicons>
+						</Card.Content>
 					</Card>
-					<Card style={styles.card} mode="contained">
+					<Card style={styles.card} onPress={() => router.navigate('/power_curve')} mode="contained">
 						<Card.Title title="Power Curve"/>
-            <Card.Content>
-            <Ionicons name="stats-chart-outline" size={92}></Ionicons>
-            </Card.Content>
+						<Card.Content>
+						<Ionicons name="stats-chart-outline" size={92}></Ionicons>
+						</Card.Content>
 					</Card>
 				</View>
 			</View>

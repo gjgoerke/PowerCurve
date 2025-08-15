@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     },
 });
 
-export default function Index() {
+export default function TrainForm() {
 
     const {
         requestPermissions,
@@ -169,7 +169,7 @@ export default function Index() {
         };
 
         router.replace({
-            pathname: '/(tabs)/(training)/train',
+            pathname: '/train',
             params: trainingParams
         });
     }
@@ -366,7 +366,7 @@ export default function Index() {
                     </Card.Content>
                 </Card>
             </View>
-            <Button mode="contained" onPress={onBeginWorkout}>Begin Workout!</Button>
+            <Button mode="contained" onPress={onBeginWorkout} style={{marginBottom: 50}}>Begin Workout!</Button>
         </ScrollView>
         <DeviceScanModal 
             visible={deviceScanModalVisible} 
