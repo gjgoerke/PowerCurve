@@ -5,13 +5,17 @@ import { Card, Text as PaperText } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 
 interface WeightsCardProps {
-    weightPacket: number[];
+    lastWeight: number;
+    currentSet: number;
+    numSets: number;
+    currentSetAvgWeight: number;
+    currentPhase: 'workoutNotBegun' | 'training' | 'resting' | 'workoutComplete';
     height: number;
     margin: number;
     padding: number;
 }
 
-export default function WeightsCard ({weightPacket, height, margin, padding} : WeightsCardProps) {
+export default function WeightsCard ({lastWeight, currentSet, numSets, currentSetAvgWeight, currentPhase, height, margin, padding} : WeightsCardProps) {
 
     const theme = useTheme();
     const styles = useMemo(() => StyleSheet.create({
@@ -42,26 +46,8 @@ export default function WeightsCard ({weightPacket, height, margin, padding} : W
             alignItems: 'center'
         }
     }), [theme]);
-
-    const [maxWeight, setMaxWeight] = useState<number>(0);
-    const [avgWeight, setAvgWeight] = useState<number>(0);
-    const [numMeasurementsSeen, setNumMeasurementsSeen] = useState<number>(0);
-    const [sumOfWeights, setSumOfWeights] = useState<number>(0);
-
-    useEffect(() => {
-        setMaxWeight(Math.max(maxWeight, ...weightPacket));
-        let length = weightPacket.length;
-        let sum = 0;
-        for(let i = 0; i < length; i++) {
-            sum += weightPacket[i];
-        }
-        setNumMeasurementsSeen(numMeasurementsSeen + weightPacket.length);
-        setSumOfWeights(sumOfWeights + sum);
-        setAvgWeight(sumOfWeights / numMeasurementsSeen);
-    }, [weightPacket]);
-    const currentWeight = weightPacket[weightPacket.length - 1]; // Get the last weight instead of hardcoded index
-
-    if(!currentWeight) {
+    
+    if(!lastWeight) {
         return null;
     }
 
@@ -69,17 +55,17 @@ export default function WeightsCard ({weightPacket, height, margin, padding} : W
         <View style={styles.container}>
             <View style={styles.maxAvgContainer}>
                 <View style={styles.descriptorNumberContainer}>
-                    <PaperText style={styles.descriptorText}>Max</PaperText>
-                    <PaperText style={styles.maxAvgNumberText}>{maxWeight.toFixed(1)}</PaperText>
+                    <PaperText style={styles.descriptorText}>Set</PaperText>
+                    <PaperText style={styles.maxAvgNumberText}>{currentSet} of {numSets}</PaperText>
                 </View>
                 <View style={styles.descriptorNumberContainer}>
                     <PaperText style={styles.descriptorText}>Avg.</PaperText>
-                    <PaperText style={styles.maxAvgNumberText}>{avgWeight.toFixed(1)}</PaperText>
+                    <PaperText style={styles.maxAvgNumberText}>{currentPhase === 'training' ? currentSetAvgWeight.toFixed(1) : 0}</PaperText>
                 </View>
             </View>
             <View style={{alignSelf: 'center', ...styles.descriptorNumberContainer}}>
                 <PaperText style={styles.descriptorText}>Current</PaperText>
-                <PaperText style={styles.currentNumberText}>{currentWeight.toFixed(1)}</PaperText>
+                <PaperText style={styles.currentNumberText}>{lastWeight.toFixed(1)}</PaperText>
             </View>
         </View>
     );

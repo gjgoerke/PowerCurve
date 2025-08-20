@@ -5,6 +5,7 @@ import { color, scaleLinear } from "d3";
 
 import { TrainingParams } from "@/types/types";
 import { useTheme } from "react-native-paper";
+import useBuffer from "@/hooks/useBuffer";
 
 interface LineChartProps {
     trainingParams: TrainingParams;
@@ -15,13 +16,19 @@ interface LineChartProps {
 }
 
 export default function LineChart ({trainingParams, weightPacket, timestampPacket, height, marginTop} : LineChartProps) {
-    const [weights, setWeights] = useState<number[]>([]);
-    const [timestamps, setTimestamps] = useState<number[]>([]);
+    const weightBuffer = useBuffer(150);
+    const timestampBuffer = useBuffer(150);
     
     useEffect(() => {
-        setWeights([...weights, ...weightPacket].slice(-150));
-        setTimestamps([...timestamps, ...timestampPacket].slice(-150));
-    }, [timestampPacket])
+        weightBuffer.addData(weightPacket);
+    }, [weightPacket]);
+
+    useEffect(() => {
+        timestampBuffer.addData(timestampPacket);
+    }, [timestampPacket]);
+    
+    const weights = weightBuffer.getBuffer();
+    const timestamps = timestampBuffer.getBuffer();
 
     // Paper Theme
     const theme = useTheme();

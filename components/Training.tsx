@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useReducer } from "react";
 import { StyleSheet, View, useWindowDimensions } from "react-native";
 import { Text as PaperText, useTheme} from "react-native-paper";
+import { router } from "expo-router";
 
 import { TrainingParams } from "@/types/types";
 import LineChart from "./LineChart";
@@ -22,11 +23,14 @@ interface TrainingState {
     timestampPacket: number[];
     trainingParams: TrainingParams;
     intervalID: number;
+    setAverages: number[];
+    currentSetNumMeasurements: number;
+    currentSetSumOfWeights: number;
 }
 
 type TrainingAction = 
-  | { type: 'ABOVE_THRESHOLD' }
-  | { type: 'BELOW_THRESHOLD' }
+  | { type: 'ABOVE_BEGIN_THRESHOLD' }
+  | { type: 'BELOW_FAILURE_THRESHOLD' }
   | { type: 'TIMER_TICK' }
   | { type: 'UPDATE_MAX_WEIGHT'; newMax: number }
   | { type: 'UPDATE_WEIGHT_PACKET'; weightPacket: number[] };
@@ -39,48 +43,79 @@ const trainingReducer = (state: TrainingState, action: TrainingAction) => {
 
     switch (action.type) {
         case "TIMER_TICK": {
-            console.log('tick ', state.timer);
-            state.timer -= 1;
-            if (state.timer === 0 && state.phase === 'resting') {
-                state.phase = 'training';
-                state.timer = trainingDurationInSeconds;
+            const newTimer = state.timer - 1;
+            if (newTimer === 0 && state.phase === 'resting') {
+                return {
+                    ...state,
+                    timer: trainingDurationInSeconds,
+                    phase: 'training' as const,
+                    currentSetNumMeasurements: 0,
+                    currentSetSumOfWeights: 0
+                };
+            }
+            return {
+                ...state,
+                timer: newTimer
+            };
+        }
+        case 'ABOVE_BEGIN_THRESHOLD': {
+            if (state.phase === 'workoutNotBegun') {
+                console.log('begin training!')
+                return {
+                    ...state,
+                    currentSet: state.currentSet + 1,
+                    phase: 'training' as const,
+                    timer: trainingDurationInSeconds
+                };
             }
             return state;
         }
-        case 'ABOVE_THRESHOLD': {
-            if (state.phase === 'workoutNotBegun') {
-                console.log('begin training!')
-                state.currentSet += 1;
-                state.phase = 'training';
-                state.timer = trainingDurationInSeconds;
-                return state;
-            }
-        }
-        case "BELOW_THRESHOLD": {
+        case "BELOW_FAILURE_THRESHOLD": {
             const endSet = 
                 (state.phase === 'training') &&
                 (trainingDurationInSeconds - state.timer) > 5 &&
                 Math.max(...state.weightPacket) < 0.5 * state.trainingParams.trainingLoad;
-            if(endSet && state.currentSet === state.trainingParams.numberOfSets) {
-                console.log('end workout');
-                state.phase = 'workoutComplete';
-                // endWorkout?
+            
+            if(endSet && state.currentSet >= state.trainingParams.numberOfSets) {
+                console.log('workout complete! currentSet:', state.currentSet, 'numberOfSets:', state.trainingParams.numberOfSets);
+                return {
+                    ...state,
+                    phase: 'workoutComplete' as const
+                };
             } else if (endSet){
-                console.log('endSet', trainingDurationInSeconds - state.timer)
-                state.currentSet += 1;
-                state.phase = 'resting';
-                state.timer = restDurationInSeconds;
+                console.log('endSet', trainingDurationInSeconds - state.timer, ' seconds');
+                return {
+                    ...state,
+                    currentSet: state.currentSet + 1,
+                    phase: 'resting' as const,
+                    timer: restDurationInSeconds
+                };
             }
             return state;
         }
         
         case "UPDATE_MAX_WEIGHT": {
-            state.maxWeight = action.newMax;
-            return state;
+            return {
+                ...state,
+                maxWeight: action.newMax
+            };
         }
         case "UPDATE_WEIGHT_PACKET": {
-            state.weightPacket = action.weightPacket;
-            return state;
+            const newCurrentSetSumOfWeights = state.currentSetSumOfWeights + action.weightPacket.reduce((previousValue: number, currentValue: number) => (previousValue + currentValue), 0);
+            const newCurrentSetNumMeasurements = state.currentSetNumMeasurements + action.weightPacket.length;
+            
+            const newSetAverages = [...state.setAverages];
+            if (state.currentSet > 0) { // Only update if we're in a set
+                newSetAverages[state.currentSet - 1] = newCurrentSetSumOfWeights / newCurrentSetNumMeasurements;
+            }
+            
+            return {
+                ...state,
+                weightPacket: action.weightPacket,
+                currentSetSumOfWeights: newCurrentSetSumOfWeights,
+                currentSetNumMeasurements: newCurrentSetNumMeasurements,
+                setAverages: newSetAverages
+            };
         }
         default:
             return state;
@@ -90,7 +125,6 @@ const trainingReducer = (state: TrainingState, action: TrainingAction) => {
 export default function Training ({trainingParams} : TrainingProps) {
     const [weightPack, setWeightPack] = useState<number[]>([]);
     const [timestampPack, setTimestampPack] = useState<number[]>([]); 
-
 
     if(!trainingParams.simulationStream) {
         const {
@@ -118,6 +152,9 @@ export default function Training ({trainingParams} : TrainingProps) {
         timestampPacket: new Array(15).fill(0),
         trainingParams: trainingParams,
         intervalID: -1,
+        setAverages: new Array(trainingParams.numberOfSets).fill(0),
+        currentSetNumMeasurements: 0,
+        currentSetSumOfWeights: 0,
     };
     const [state, dispatch] = useReducer(trainingReducer, initialState);
     const intervalID = useRef<number | null>(null);
@@ -144,13 +181,20 @@ export default function Training ({trainingParams} : TrainingProps) {
         
         if(weightPackMax > state.maxWeight) dispatch({type: 'UPDATE_MAX_WEIGHT', newMax: weightPackMax});
         if(weightPackMax > trainingParams.trainingLoad - trainingParams.trainingLoadTolerance){
-            dispatch({ type: 'ABOVE_THRESHOLD' });
+            dispatch({ type: 'ABOVE_BEGIN_THRESHOLD' });
         } 
         if(weightPackMax > 0 && weightPackMax < 0.5 * trainingParams.trainingLoad){
-            console.log(weightPackMax, ' < ', 0.5 * trainingParams.trainingLoad);
-            dispatch({type: 'BELOW_THRESHOLD'});
+            dispatch({type: 'BELOW_FAILURE_THRESHOLD'});
         } 
     }, [weightPack, trainingParams]);
+
+    useEffect(() => {
+        console.log('Phase changed to:', state.phase, 'Current set:', state.currentSet);
+        if(state.phase === 'workoutComplete') {
+            console.log('workout complete: average weights: ', state.setAverages)
+            router.replace('/end_training');
+        }
+    }, [state.phase])
 
     /*
     *   Sizing of Line Chart and Weights Card
@@ -201,32 +245,34 @@ export default function Training ({trainingParams} : TrainingProps) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.container}>
-                <View style={styles.weightsCardContainer}>
-                    <WeightsCard 
-                        weightPacket={weightPack}
-                        height={weightsCardRatio * screenHeight}
-                        margin={weightsCardMargin}
-                        padding={weightsCardPadding}
-                    />
-                </View>
-                <View style={styles.chartContainer}>
-                    <LineChart 
-                        trainingParams={trainingParams} 
-                        weightPacket={weightPack} 
-                        timestampPacket={timestampPack}
-                        height={lineChartHeight}
-                        marginTop={lineChartMarginTop}
-                    />
-                </View>
-                {
-                    state.currentSet > 0 && 
-                    <View style={styles.timerContainer}>
-                        <PaperText>{state.phase === 'training' && "Pull!"}{state.phase === 'resting' && 'Rest'}</PaperText>
-                        <PaperText style={styles.timerNumberText}>{state.timer}</PaperText>
-                    </View>
-                }
+            <View style={styles.weightsCardContainer}>
+                <WeightsCard 
+                    lastWeight={state.weightPacket[state.weightPacket.length - 1]}
+                    currentSet={state.currentSet}
+                    numSets={trainingParams.numberOfSets}
+                    currentSetAvgWeight={state.setAverages[state.currentSet - 1]}
+                    currentPhase={state.phase}
+                    height={weightsCardRatio * screenHeight}
+                    margin={weightsCardMargin}
+                    padding={weightsCardPadding}
+                />
             </View>
+            <View style={styles.chartContainer}>
+                <LineChart 
+                    trainingParams={trainingParams} 
+                    weightPacket={weightPack} 
+                    timestampPacket={timestampPack}
+                    height={lineChartHeight}
+                    marginTop={lineChartMarginTop}
+                />
+            </View>
+            {
+                state.currentSet > 0 && 
+                <View style={styles.timerContainer}>
+                    <PaperText>{state.phase === 'training' && "Pull!"}{state.phase === 'resting' && 'Rest'}</PaperText>
+                    <PaperText style={styles.timerNumberText}>{state.timer}</PaperText>
+                </View>
+            }
         </View>
     );
 }
