@@ -143,11 +143,11 @@ export default function Training ({trainingParams} : TrainingProps) {
     *   Training Stuff
     */
 
-    const initialState: TrainingState = {
+    const createInitialState = useMemo(() => ({
         currentSet: 0,
         timer: -1,
         maxWeight: 0,
-        phase: 'workoutNotBegun',
+        phase: 'workoutNotBegun' as const,
         weightPacket: new Array(15).fill(0),
         timestampPacket: new Array(15).fill(0),
         trainingParams: trainingParams,
@@ -155,8 +155,9 @@ export default function Training ({trainingParams} : TrainingProps) {
         setAverages: new Array(trainingParams.numberOfSets).fill(0),
         currentSetNumMeasurements: 0,
         currentSetSumOfWeights: 0,
-    };
-    const [state, dispatch] = useReducer(trainingReducer, initialState);
+    }), [trainingParams]);
+
+    const [state, dispatch] = useReducer(trainingReducer, createInitialState);
     const intervalID = useRef<number | null>(null);
 
     // Start the timer interval once
