@@ -15,7 +15,8 @@ export default function useSimulationStream (
             for(let i = 0; i < 15; i++) {
                 seconds += newPacketRate / 15000;
                 timestamps[i] = seconds
-                weights[i] = trainingParams.trainingLoad + 0.8 * trainingParams.trainingLoadTolerance * Math.sin( 4 * seconds);
+                weights[i] = trainingParams.trainingLoad + 0.8 * trainingParams.trainingLoadTolerance 
+                * Math.sin( 4 * seconds) + 0.3 * Math.random();
             }
             setWeightPack(weights);
             setTimestampPack(timestamps);
