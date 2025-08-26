@@ -19,3 +19,13 @@ export const createDbIfNeeded = async (db: SQLiteDatabase) => {
         );
     `); 
 }
+
+export const newGrip = async (db: SQLiteDatabase, name: string) => {
+    return await db.runAsync(`
+        INSERT INTO grips (name) VALUES (?);
+    `, [name]);
+};
+
+export const allGrips = async (db: SQLiteDatabase) => {
+    return await db.getAllAsync('SELECT * FROM grips');
+}

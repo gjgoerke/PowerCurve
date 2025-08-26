@@ -179,27 +179,6 @@ export default function DeviceScanModal({visible, setVisible, navigateToTrain} :
                                             Scan for Devices
                                         </Button>
 
-                                        {/* {allDevices.length > 0 && (
-                                            <View style={styles.deviceList}>
-                                                <Divider style={styles.divider} />
-                                                <PaperText style={styles.title}>Available Devices</PaperText>
-                                                {allDevices.map((device) => (
-                                                    <Button
-                                                        key={device.id}
-                                                        mode="outlined"
-                                                        onPress={() => connectToDevice(device)}
-                                                        style={styles.deviceItem}
-                                                        contentStyle={styles.deviceButton}
-                                                        icon="bluetooth"
-                                                    >
-                                                        <PaperText style={styles.deviceName}>
-                                                            {device.name || 'Unknown Device'}
-                                                        </PaperText>
-                                                    </Button>
-                                                ))}
-                                            </View>
-                                        )} */}
-
                                         {!isScanningForDevices && allDevices.length === 0 && (
                                             <PaperText style={styles.noDevicesText}>
                                                 No devices found. Tap "Scan for Devices" to search.

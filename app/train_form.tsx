@@ -1,12 +1,15 @@
-import React, {useState, useCallback} from "react";
+import React, {useState, useCallback, useEffect} from "react";
 import { View, StyleSheet, Text, ScrollView } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Card, Text as PaperText, TextInput, SegmentedButtons, Button, Menu, Divider, Modal, Portal } from 'react-native-paper';
 
 import { useBLEContext } from "@/context/BLEContext";
 import DeviceScanModal from "@/components/DeviceScanModal";
 import { TrainingParams } from "@/types/types";
 import { navigate } from "expo-router/build/global-state/routing";
+import CreateGripModal from "@/components/NewGripModal";
+import { allGrips as getAllGrips } from "@/utils/databaseUtils";
+import { useSQLiteContext } from "expo-sqlite";
 
 
 const styles = StyleSheet.create({
@@ -105,21 +108,31 @@ export default function TrainForm() {
     } = useBLEContext();
 
     /*
-    *   Temporary Grip Selection
+    *   Load Grips
     */
-    const grips = ['Heavy Artifact', '20mm edge', '10mm edge'] as const;
+    const database = useSQLiteContext();
+    const loadGrips = async () => {
+        const gripsData = await getAllGrips(database);
+        console.log(gripsData)
+        setAllGrips(gripsData);
+    };
 
-    type Grip = typeof grips[number];
+    useEffect(() => {
+        loadGrips();
+    }, [database]);
 
     /*
     * Input State
     */
     const [simulationStream, setSimulationStream] = useState<boolean>(true);
 
+    const [allGrips, setAllGrips] = useState<any[]>([]);
+
     const [gripMenuVisible, setGripMenuVisible] = useState<boolean>(false);
+    const [createGripModalVisible, setCreateGripModalVisible] = useState<boolean>(false);
     const [deviceScanModalVisible, setDeviceScanModalVisible] = useState<boolean>(false);
 
-    const [grip, setGrip] = useState<Grip>('Heavy Artifact');
+    const [grip, setGrip] = useState<string>('');
     const [hand, setHand] = useState<string>('left');
 
     const [durationMinutes, setDurationMinutes] = useState<number>(0);
@@ -143,10 +156,15 @@ export default function TrainForm() {
         setGripMenuVisible(false);
     }, []);
 
-    const selectGrip = useCallback((selectedGrip: Grip) => {
+    const selectGrip = useCallback((selectedGrip: string) => {
         setGrip(selectedGrip);
         closeGripMenu();
     }, [closeGripMenu]);
+
+    const openCreateGripModal = useCallback(() => {
+        closeGripMenu();
+        setCreateGripModalVisible(true);
+    }, [])
 
     const onChangeText = useCallback((value: string, setStateFunction: React.Dispatch<React.SetStateAction<number>>) => {
         const numericValue = value.replace(/[^0-9]/g, '');
@@ -219,11 +237,11 @@ export default function TrainForm() {
                                     </Button>
                                 }
                             >
-                                <Menu.Item onPress={() => selectGrip('Heavy Artifact')} title="Heavy Artifact" />
-                                <Menu.Item onPress={() => selectGrip('20mm edge')} title="20mm edge" />
-                                <Menu.Item onPress={() => selectGrip('10mm edge')} title="10mm edge" />
+                                {allGrips.map(grip => (
+                                    <Menu.Item onPress={() => selectGrip(grip.name)} title={grip.name} key={grip.id}/>
+                                ))}
                                 <Divider />
-                                <Menu.Item onPress={() => {}} leadingIcon={'plus'} title="Create grip" />
+                                <Menu.Item onPress={openCreateGripModal} leadingIcon={'plus'} title="New grip" />
                             </Menu>
                         </View>
 
@@ -368,6 +386,12 @@ export default function TrainForm() {
             </View>
             <Button mode="contained" onPress={onBeginWorkout} style={{marginBottom: 50}}>Begin Workout!</Button>
         </ScrollView>
+        <CreateGripModal
+            visible={createGripModalVisible}
+            setVisible={setCreateGripModalVisible}
+            loadGrips={loadGrips}
+            selectGrip={selectGrip}
+        />
         <DeviceScanModal 
             visible={deviceScanModalVisible} 
             setVisible={setDeviceScanModalVisible} 
