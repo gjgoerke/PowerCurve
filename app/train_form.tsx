@@ -5,7 +5,7 @@ import { Card, Text as PaperText, TextInput, SegmentedButtons, Button, Menu, Div
 
 import { useBLEContext } from "@/context/BLEContext";
 import DeviceScanModal from "@/components/DeviceScanModal";
-import { TrainingParams } from "@/types/types";
+import { Grip, TrainingParams } from "@/types/types";
 import { navigate } from "expo-router/build/global-state/routing";
 import CreateGripModal from "@/components/NewGripModal";
 import { allGrips as getAllGrips } from "@/utils/databaseUtils";
@@ -108,23 +108,9 @@ export default function TrainForm() {
     } = useBLEContext();
 
     /*
-    *   Load Grips
-    */
-    const database = useSQLiteContext();
-    const loadGrips = async () => {
-        const gripsData = await getAllGrips(database);
-        console.log(gripsData)
-        setAllGrips(gripsData);
-    };
-
-    useEffect(() => {
-        loadGrips();
-    }, [database]);
-
-    /*
     * Input State
     */
-    const [simulationStream, setSimulationStream] = useState<boolean>(true);
+    const [simulationStream, setSimulationStream] = useState<boolean>(false);
 
     const [allGrips, setAllGrips] = useState<any[]>([]);
 
@@ -132,17 +118,37 @@ export default function TrainForm() {
     const [createGripModalVisible, setCreateGripModalVisible] = useState<boolean>(false);
     const [deviceScanModalVisible, setDeviceScanModalVisible] = useState<boolean>(false);
 
-    const [grip, setGrip] = useState<string>('');
+    const [grip, setGrip] = useState<string>();
     const [hand, setHand] = useState<string>('left');
 
     const [durationMinutes, setDurationMinutes] = useState<number>(0);
-    const [durationSeconds, setDurationSeconds] = useState<number>(20);
+    const [durationSeconds, setDurationSeconds] = useState<number>(120);
     const [restMinutes, setRestMinutes] = useState<number>(0);
-    const [restSeconds, setRestSeconds] = useState<number>(10);
-    const [numberOfSets, setNumberOfSets]  = useState<number>(5);
-    const [trainingLoad, setTrainingLoad] = useState<number>(5);
-    const [trainingLoadTolerance, setTrainingLoadTolerance] = useState<number>(1);
+    const [restSeconds, setRestSeconds] = useState<number>(20);
+    const [numberOfSets, setNumberOfSets]  = useState<number>(10);
+    const [trainingLoad, setTrainingLoad] = useState<number>(30);
+    const [trainingLoadTolerance, setTrainingLoadTolerance] = useState<number>(2);
     const [timeTolerance, setTimeTolerance] = useState<number>(5);
+
+    /*
+    *   Load Grips
+    */
+    const database = useSQLiteContext();
+
+    const loadGrips = async (initialLoad?: boolean) => {
+        const gripsData: Grip[] = await getAllGrips(database) as Grip[];
+        console.log(gripsData)
+        setAllGrips(gripsData);
+        if (initialLoad) setGrip(gripsData[0].name);
+    };
+
+    useEffect(() => {
+        loadGrips(true);
+    }, []);
+
+    useEffect(() => {
+        loadGrips();
+    }, [database]);
     
 
     /*

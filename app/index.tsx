@@ -82,6 +82,27 @@ export default function Index() {
 						</Card.Content>
 					</Card>
 				</View>
+				<View style={styles.row}>
+					<Card 
+						style={styles.card} 
+						onPress={() => 
+							router.navigate({
+								pathname: '/end_training',
+								params: {
+										trainingParams: JSON.stringify({}),
+										results: JSON.stringify({
+											weights: [28.4, 29, 28.7, 30, 32],
+											times: [120, 90, 80, 70, 60, 50]
+										})
+								}
+						})} 
+						mode="contained">
+							<Card.Title title="end_training"/>
+							<Card.Content>
+							<Ionicons name="walk-outline" size={92}></Ionicons>
+							</Card.Content>
+					</Card>
+				</View>
 			</View>
 			{/* <Button onPress={scanForDevices} mode="contained">Scan for Devices</Button>
 			{allDevices.map((device) => (

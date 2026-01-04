@@ -1,3 +1,4 @@
+import { Workout } from "@/types/types";
 import { SQLiteDatabase } from "expo-sqlite";
 
 export const createDbIfNeeded = async (db: SQLiteDatabase) => {
@@ -18,7 +19,11 @@ export const createDbIfNeeded = async (db: SQLiteDatabase) => {
             FOREIGN KEY (grip) REFERENCES grips(id)
         );
     `); 
-}
+};
+
+/*
+* Grip CRUD
+*/
 
 export const newGrip = async (db: SQLiteDatabase, name: string) => {
     return await db.runAsync(`
@@ -28,4 +33,33 @@ export const newGrip = async (db: SQLiteDatabase, name: string) => {
 
 export const allGrips = async (db: SQLiteDatabase) => {
     return await db.getAllAsync('SELECT * FROM grips');
+};
+
+/*
+* Workout CRUD
+*/
+
+export const newWorkout = async(db: SQLiteDatabase, workout: Workout) => {
+    try {
+        const gripResult = await db.getFirstAsync<{id: number}>('SELECT id FROM grips WHERE name = ?', [workout.grip]);
+        if (!gripResult) {
+            throw new Error(`Grip "${workout.grip}" not found in database`);
+        }
+    
+        const gripId = gripResult.id;
+        
+        // Then insert the workout with the grip ID
+        return await db.runAsync(`
+            INSERT INTO workouts (
+                grip,
+                comment,
+                trainingParams,
+                trainingResults
+            ) VALUES (?, ?, ?, ?);
+            `, [gripId, workout.comment, JSON.stringify(workout.params), JSON.stringify(workout.results)]);
+    } catch (error) {
+        console.error('Trouble saving workout', error);
+        throw error;
+    }
 }
+

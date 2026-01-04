@@ -7,7 +7,7 @@ import { TrainingParams } from "@/types/types";
 import LineChart from "./LineChart";
 import WeightsCard from "./WeightsCard";
 import { useBLEContext } from "@/context/BLEContext";
-import { computeSetDuration } from "@/utils/trainingUtils";
+import { computeEstimatedFailureTimes } from "@/utils/trainingUtils";
 import useSimulationStream from "@/hooks/useSimulationStream";
 
 interface TrainingProps {
@@ -24,6 +24,7 @@ interface TrainingState {
     trainingParams: TrainingParams;
     intervalID: number;
     setAverages: number[];
+    setTimes: number[];
     currentSetNumMeasurements: number;
     currentSetSumOfWeights: number;
 }
@@ -36,7 +37,6 @@ type TrainingAction =
   | { type: 'UPDATE_WEIGHT_PACKET'; weightPacket: number[] };
 
 const trainingReducer = (state: TrainingState, action: TrainingAction) => {
-
     // Plan on getting rid of the seperation of minutes and seconds!
     const trainingDurationInSeconds = state.trainingParams.durationMinutes * 60 + state.trainingParams.durationSeconds;
     const restDurationInSeconds  = state.trainingParams.restMinutes * 60 + state.trainingParams.restSeconds;
@@ -45,6 +45,7 @@ const trainingReducer = (state: TrainingState, action: TrainingAction) => {
         case "TIMER_TICK": {
             const newTimer = state.timer - 1;
             if (newTimer === 0 && state.phase === 'resting') {
+                console.log(computeEstimatedFailureTimes(state.setTimes[0], 0.4, 0.25, 0.15)[state.currentSet])
                 return {
                     ...state,
                     timer: trainingDurationInSeconds,
@@ -78,17 +79,25 @@ const trainingReducer = (state: TrainingState, action: TrainingAction) => {
             
             if(endSet && state.currentSet >= state.trainingParams.numberOfSets) {
                 console.log('workout complete! currentSet:', state.currentSet, 'numberOfSets:', state.trainingParams.numberOfSets);
+                // Update setTimes for the final set
+                const newSetTimes = [...state.setTimes];
+                newSetTimes[state.currentSet - 1] = trainingDurationInSeconds - state.timer;
                 return {
                     ...state,
-                    phase: 'workoutComplete' as const
+                    phase: 'workoutComplete' as const,
+                    setTimes: newSetTimes
                 };
             } else if (endSet){
                 console.log('endSet', trainingDurationInSeconds - state.timer, ' seconds');
+                // Update setTimes for the current set
+                const newSetTimes = [...state.setTimes];
+                newSetTimes[state.currentSet - 1] = trainingDurationInSeconds - state.timer;
                 return {
                     ...state,
                     currentSet: state.currentSet + 1,
                     phase: 'resting' as const,
-                    timer: restDurationInSeconds
+                    timer: restDurationInSeconds,
+                    setTimes: newSetTimes
                 };
             }
             return state;
@@ -153,6 +162,7 @@ export default function Training ({trainingParams} : TrainingProps) {
         trainingParams: trainingParams,
         intervalID: -1,
         setAverages: new Array(trainingParams.numberOfSets).fill(0),
+        setTimes: new Array(trainingParams.numberOfSets).fill(0),
         currentSetNumMeasurements: 0,
         currentSetSumOfWeights: 0,
     }), [trainingParams]);
@@ -192,8 +202,19 @@ export default function Training ({trainingParams} : TrainingProps) {
     useEffect(() => {
         console.log('Phase changed to:', state.phase, 'Current set:', state.currentSet);
         if(state.phase === 'workoutComplete') {
-            console.log('workout complete: average weights: ', state.setAverages)
-            router.replace('/end_training');
+            console.log('workout complete: average weights: ', state.setAverages);
+            console.log('Lengths of sets: ', state.setTimes);
+            const params = {
+                trainingParams: JSON.stringify(trainingParams),
+                results: JSON.stringify({
+                    weights: state.setAverages,
+                    times: state.setTimes
+                })
+            };
+            router.replace({
+                pathname: '/end_training',
+                params
+            });
         }
     }, [state.phase])
 
