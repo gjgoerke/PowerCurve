@@ -194,7 +194,7 @@ export default function Training ({trainingParams} : TrainingProps) {
         if(weightPackMax > trainingParams.trainingLoad - trainingParams.trainingLoadTolerance){
             dispatch({ type: 'ABOVE_BEGIN_THRESHOLD' });
         } 
-        if(weightPackMax > 0 && weightPackMax < 0.5 * trainingParams.trainingLoad){
+        if(weightPackMax >= 0 && weightPackMax < 0.5 * trainingParams.trainingLoad){
             dispatch({type: 'BELOW_FAILURE_THRESHOLD'});
         } 
     }, [weightPack, trainingParams]);
@@ -209,10 +209,11 @@ export default function Training ({trainingParams} : TrainingProps) {
                 results: JSON.stringify({
                     weights: state.setAverages,
                     times: state.setTimes
-                })
+                }),
+                saveWorkoutOption: 'true',
             };
             router.replace({
-                pathname: '/end_training',
+                pathname: '/workout',
                 params
             });
         }
