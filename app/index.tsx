@@ -102,6 +102,18 @@ export default function Index() {
 							<Ionicons name="walk-outline" size={92}></Ionicons>
 							</Card.Content>
 					</Card>
+					<Card 
+						style={styles.card} 
+						onPress={() => 
+							router.navigate({
+								pathname: '/workouts',
+						})} 
+						mode="contained">
+							<Card.Title title="Workouts"/>
+							<Card.Content>
+							<Ionicons name="book-outline" size={92}></Ionicons>
+							</Card.Content>
+					</Card>
 				</View>
 			</View>
 			{/* <Button onPress={scanForDevices} mode="contained">Scan for Devices</Button>

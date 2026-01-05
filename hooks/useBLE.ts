@@ -5,6 +5,7 @@ import {
   BleManager,
   Characteristic,
   Device,
+  State,
 } from "react-native-ble-plx";
 import base64 from "react-native-base64";
 

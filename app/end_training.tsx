@@ -38,6 +38,7 @@ export default function EndTraining() {
             setError("Failed to save workout.");
         } finally {
             setSaving(false);
+            router.replace('/');
         }
     };
     
@@ -102,7 +103,7 @@ export default function EndTraining() {
                 }
             </DataTable>
             <View style={styles.buttonContainer}>
-                <Button mode='contained-tonal' onPress={router.back}>Don't Save</Button>
+                <Button mode='contained-tonal' onPress={() => {router.replace('/')}}>Don't Save</Button>
                 <Button 
                     mode='contained' 
                     onPress={saveWorkout} 

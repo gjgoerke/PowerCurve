@@ -23,6 +23,10 @@ export interface ResultItem {
     timeToFailure: number;
 }
 
+/*
+*   Models
+*/
+
 export type Workout = {
     grip: string
     params: TrainingParams | null;
@@ -30,9 +34,14 @@ export type Workout = {
     comment: string;
 }
 
-/*
-*   Models
-*/
+export type WorkoutRow = {
+    id: number;
+    grip: number;
+    trainingParams: TrainingParams;
+    trainingResults: ResultItem[];
+    comment: string;
+    timestamp: string;
+}
 
 export type Grip = {
     id: number;

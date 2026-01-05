@@ -1,4 +1,4 @@
-import { Workout } from "@/types/types";
+import { Workout, WorkoutRow } from "@/types/types";
 import { SQLiteDatabase } from "expo-sqlite";
 
 export const createDbIfNeeded = async (db: SQLiteDatabase) => {
@@ -62,4 +62,29 @@ export const newWorkout = async(db: SQLiteDatabase, workout: Workout) => {
         throw error;
     }
 }
+
+
+
+export const getAllWorkouts = async (db: SQLiteDatabase) => {
+    type WorkoutDB = {
+        id: number;
+        grip: number;
+        trainingParams: string;
+        trainingResults: string;
+        comment: string;
+        timestamp: string;
+    }
+    const workouts: WorkoutDB[] = await db.getAllAsync<WorkoutDB>('SELECT * FROM workouts');
+    const workoutsTyped = workouts.map((workout) => (
+        {
+            id: workout.id,
+            grip: workout.grip,
+            trainingParams: JSON.parse(workout.trainingParams),
+            trainingResults: JSON.parse(workout.trainingResults),
+            comment: workout.comment,
+            timestamp: workout.timestamp
+        }
+    ))
+    return workoutsTyped;
+};
 
