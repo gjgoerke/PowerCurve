@@ -3,7 +3,7 @@ import { newWorkout } from "@/utils/databaseUtils";
 
 import { useLocalSearchParams, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { Button, DataTable, Text as PaperText} from "react-native-paper";
 import { useSQLiteContext } from "expo-sqlite";
 
@@ -13,12 +13,13 @@ const styles = StyleSheet.create({
         marginBottom: 20
     },
     buttonContainer: {
+        marginTop: 20,
         flexDirection: 'row',
         justifyContent: 'space-around'
     }
 });
 
-export default function EndTraining() {
+export default function Workout() {
     const database = useSQLiteContext();
     const params = useLocalSearchParams();
     const [resultsData, setResultsData] = useState<ResultItem[]>([]);
@@ -85,7 +86,7 @@ export default function EndTraining() {
     }
 
     return(
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             <DataTable>
                 <DataTable.Header>
                     <DataTable.Title numeric>Set</DataTable.Title>
@@ -102,14 +103,16 @@ export default function EndTraining() {
                     ))
                 }
             </DataTable>
-            <View style={styles.buttonContainer}>
-                <Button mode='contained-tonal' onPress={() => {router.replace('/')}}>Don't Save</Button>
-                <Button 
-                    mode='contained' 
-                    onPress={saveWorkout} 
-                    disabled={!trainingParams?.grip || resultsData.length === 0 || saving}
-                >{saving ? "Saving..." : "Save Workout"}</Button>
-            </View>
-        </View>
+            { params.saveWorkoutOption == "true" &&
+                <View style={styles.buttonContainer}>
+                    <Button mode='contained-tonal' onPress={() => {router.replace('/')}}>Don't Save</Button>
+                    <Button 
+                        mode='contained' 
+                        onPress={saveWorkout} 
+                        disabled={!trainingParams?.grip || resultsData.length === 0 || saving}
+                    >{saving ? "Saving..." : "Save Workout"}</Button>
+                </View>
+            }
+        </ScrollView>
     );
 }

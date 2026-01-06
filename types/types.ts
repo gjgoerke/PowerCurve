@@ -40,7 +40,7 @@ export type WorkoutRow = {
     trainingParams: TrainingParams;
     trainingResults: ResultItem[];
     comment: string;
-    timestamp: string;
+    timestamp: Date;
 }
 
 export type Grip = {

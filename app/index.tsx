@@ -87,7 +87,7 @@ export default function Index() {
 						style={styles.card} 
 						onPress={() => 
 							router.navigate({
-								pathname: '/end_training',
+								pathname: '/workout',
 								params: {
 										trainingParams: JSON.stringify({}),
 										results: JSON.stringify({

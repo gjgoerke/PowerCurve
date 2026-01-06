@@ -74,17 +74,17 @@ export const getAllWorkouts = async (db: SQLiteDatabase) => {
         comment: string;
         timestamp: string;
     }
-    const workouts: WorkoutDB[] = await db.getAllAsync<WorkoutDB>('SELECT * FROM workouts');
-    const workoutsTyped = workouts.map((workout) => (
+    const workouts: WorkoutDB[] = await db.getAllAsync<WorkoutDB>('SELECT * FROM workouts ORDER BY timestamp DESC');
+    const workoutsParsed = workouts.map((workout) => (
         {
             id: workout.id,
             grip: workout.grip,
             trainingParams: JSON.parse(workout.trainingParams),
             trainingResults: JSON.parse(workout.trainingResults),
             comment: workout.comment,
-            timestamp: workout.timestamp
+            timestamp: new Date(workout.timestamp)
         }
     ))
-    return workoutsTyped;
+    return workoutsParsed;
 };
 

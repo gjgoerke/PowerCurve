@@ -4,8 +4,10 @@ import { Workout, WorkoutRow } from "@/types/types";
 import { useSQLiteContext } from "expo-sqlite";
 import { useFocusEffect } from "expo-router";
 import { useState, useCallback } from "react";
-import { DataTable } from "react-native-paper";
-import { StyleSheet, View } from "react-native";
+import { DataTable, Divider, List } from "react-native-paper";
+import { StyleSheet, ScrollView, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { router } from "expo-router";
 
 const styles = StyleSheet.create({
     container: {
@@ -32,27 +34,46 @@ export default function Workouts() {
         }, [database])
     );
 
+    const navigateToWorkout = (workout: WorkoutRow) => {
+        const params = {
+            trainingParams: JSON.stringify(workout.trainingParams),
+            results: JSON.stringify({
+                weights: workout.trainingResults.map((val) => val.averageWeight),
+                times: workout.trainingResults.map((val) => val.timeToFailure)
+            }),
+            saveWorkoutOption: 'false',
+        };
+        router.navigate({
+            pathname: '/workout',
+            params
+        });
+    }
+
     return(
-    <View style={styles.container}>
-        <DataTable>
-            <DataTable.Header>
-                <DataTable.Title sortDirection="descending">Date</DataTable.Title>
-                <DataTable.Title>Grip</DataTable.Title>
-                <DataTable.Title>Hand</DataTable.Title>
-                <DataTable.Title numeric>Time to Failure</DataTable.Title>
-            </DataTable.Header>
-            {
-                workouts.map((item, index) => {
-                    return (
-                        <DataTable.Row key={index}>
-                            <DataTable.Cell>{item.timestamp}</DataTable.Cell>
-                            <DataTable.Cell>{item.trainingParams.grip}</DataTable.Cell>
-                            <DataTable.Cell>{item.trainingParams.hand}</DataTable.Cell>
-                            <DataTable.Cell numeric>{item.trainingResults[0].timeToFailure}s</DataTable.Cell>
-                        </DataTable.Row>
-                    )
-                })
-            }
-        </DataTable>
-    </View>);
+    <ScrollView style={styles.container}>
+        {
+            workouts.map((workout, index) => {
+                const title = workout.trainingParams.grip + " " + workout.timestamp.toLocaleDateString();
+                const description = workout.trainingResults[0].timeToFailure + "s" + " averaging " + workout.trainingResults[0].averageWeight.toFixed(1) + "kg";
+                const iconName = workout.trainingParams.hand == "left" ? "hand-left-outline" : "hand-right-outline";
+                return (
+                    <View key={index}>
+                        <List.Item 
+                            title={title}
+                            description={description}
+                            left={() => 
+                                (
+                                    <View style={{alignContent: "center", justifyContent: "center", paddingLeft: 10}}>
+                                        <Ionicons name={iconName} size={24}/>
+                                    </View>
+                                )
+                            }
+                            onPress={() => navigateToWorkout(workout)}
+                            />
+                        <Divider/>
+                    </View>
+                )
+            })
+        }
+    </ScrollView>);
 }
