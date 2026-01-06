@@ -6,11 +6,12 @@ import { useEffect, useState } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { Button, DataTable, Text as PaperText} from "react-native-paper";
 import { useSQLiteContext } from "expo-sqlite";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Header from "@/components/Header";
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 30,
-        marginBottom: 20
+
     },
     buttonContainer: {
         marginTop: 20,
@@ -86,33 +87,36 @@ export default function Workout() {
     }
 
     return(
-        <ScrollView style={styles.container}>
-            <DataTable>
-                <DataTable.Header>
-                    <DataTable.Title numeric>Set</DataTable.Title>
-                    <DataTable.Title numeric>Time to Failure</DataTable.Title>
-                    <DataTable.Title numeric>Average Weight</DataTable.Title>
-                </DataTable.Header>
-                {
-                    resultsData.map((item) => (
-                        <DataTable.Row key={item.set}>
-                            <DataTable.Cell numeric>{item.set}</DataTable.Cell>
-                            <DataTable.Cell numeric>{item.timeToFailure.toFixed(1)}s</DataTable.Cell>
-                            <DataTable.Cell numeric>{item.averageWeight.toFixed(1)}</DataTable.Cell>
-                        </DataTable.Row>
-                    ))
+        <SafeAreaView>
+            <ScrollView style={styles.container}>
+                <Header title={trainingParams?.grip + " " + params.timestampString}/>
+                <DataTable>
+                    <DataTable.Header>
+                        <DataTable.Title numeric>Set</DataTable.Title>
+                        <DataTable.Title numeric>Time to Failure</DataTable.Title>
+                        <DataTable.Title numeric>Average Weight</DataTable.Title>
+                    </DataTable.Header>
+                    {
+                        resultsData.map((item) => (
+                            <DataTable.Row key={item.set}>
+                                <DataTable.Cell numeric>{item.set}</DataTable.Cell>
+                                <DataTable.Cell numeric>{item.timeToFailure.toFixed(1)}s</DataTable.Cell>
+                                <DataTable.Cell numeric>{item.averageWeight.toFixed(1)}</DataTable.Cell>
+                            </DataTable.Row>
+                        ))
+                    }
+                </DataTable>
+                { params.saveWorkoutOption == "true" &&
+                    <View style={styles.buttonContainer}>
+                        <Button mode='contained-tonal' onPress={() => {router.replace('/')}}>Don't Save</Button>
+                        <Button 
+                            mode='contained' 
+                            onPress={saveWorkout} 
+                            disabled={!trainingParams?.grip || resultsData.length === 0 || saving}
+                        >{saving ? "Saving..." : "Save Workout"}</Button>
+                    </View>
                 }
-            </DataTable>
-            { params.saveWorkoutOption == "true" &&
-                <View style={styles.buttonContainer}>
-                    <Button mode='contained-tonal' onPress={() => {router.replace('/')}}>Don't Save</Button>
-                    <Button 
-                        mode='contained' 
-                        onPress={saveWorkout} 
-                        disabled={!trainingParams?.grip || resultsData.length === 0 || saving}
-                    >{saving ? "Saving..." : "Save Workout"}</Button>
-                </View>
-            }
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }

@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import Training from "@/components/Training";
 import { TrainingParams } from "@/types/types";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function Train() {
@@ -26,8 +27,8 @@ export default function Train() {
     console.log(trainingParams)
 
     return(
-        <View>
+        <SafeAreaView>
             <Training trainingParams={trainingParams}/>
-        </View>
+        </SafeAreaView>
     );
 }
